@@ -180,7 +180,7 @@ class Chest:
             print('Сундук был уже открыт!')
 
     def get_rarity(self):
-        rarity_names = {1: "редкий", 2: "эпический", 3: "мифический", 4: "легендарный"}
+        rarity_names = {1: 'редкий', 2: 'эпический', 3: 'мифический', 4: 'легендарный'}
         return rarity_names.get(self.rarity)
 
     def open_chest(self):
@@ -222,6 +222,9 @@ class Chest:
             print('Сундук закрыт. Взломайте его или откройте ключом!' if self.code == 0
                   else 'Сундук закрыт специальным ключом, надо открыть его!')
             return
+        if self.chest_items == {}:
+            print('Сундук пуст!')
+            return
         item = input('Напишите название предмета в сундуке:\t')
         if item not in self.chest_items:
             print('Такого предмета нет в сундуке.')
@@ -255,6 +258,9 @@ class Chest:
         if self.lock:
             print('Сундук закрыт. Взломайте его или откройте ключом!' if self.code == 0
                   else 'Сундук закрыт специальным ключом, надо открыть его!')
+            return
+        if self.player_items == {}:
+            print('Инвентарь игрока пуст!')
             return
         item = input('Напишите название предмета из вашего инвентаря:\t')
         if item not in self.player_items:
