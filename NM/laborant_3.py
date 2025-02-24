@@ -7,9 +7,7 @@ class Matrix:
         if matrix:
             self.matrix = matrix
             self.length, self.width = len(matrix), len(matrix[0]) if matrix else  0
-            temp = self.__mmm()
-            if temp != []:
-                raise f'В матрице не хватает элементов в таких строках: {", ".join([str(elem) for elem in temp])}'
+            self.__width_error()
         else:
             if self.__answer():
                 self.length, self.width = self.__matrix_size()
@@ -17,12 +15,14 @@ class Matrix:
             else:
                 self.matrix, self.length, self.width = self.__generate_matrix()
 
-    def __mmm(self):
+    def __width_error(self):
         temp = []
         for i in range(len(self.matrix)):
             if len(self.matrix[i]) != self.width:
                 temp.append(i + 1)
-        return temp
+        if temp != []:
+            raise ValueError(
+                f'В матрице не хватает элементов в таких строках: {", ".join([str(elem) for elem in temp])}')
 
     def __answer(self):
         # Задать вопрос пользователю, какую матрицу создать, если он не указал заранее матрицу.
@@ -139,7 +139,7 @@ class Matrix:
 
 # Создаем две матрицы 3x3
 matrix_1 = [
-    [7, 7, -2, 3],
+    [7, 7, -2],
     [1, -2, -4],
     [3, -6, 4]
 ]
