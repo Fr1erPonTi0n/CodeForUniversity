@@ -1,20 +1,28 @@
 import random
 
-# Класс для создания матрицы 3 на 3.
+# Класс для создания матрицы.
 class Matrix:
     def __init__(self, matrix=None):
         # Инициализация матрицы.
-        self.length, self.width = 3, 3
         if matrix:
-            if len(matrix) != self.length or any(len(row) != self.width for row in matrix):
-                raise ValueError("Матрица должна быть размером 3x3.")
             self.matrix = matrix
-            self.matrix = matrix
+            self.length, self.width = len(matrix), len(matrix[0]) if matrix else  0
+            temp = self.__mmm()
+            if temp != []:
+                raise f'В матрице не хватает элементов в таких строках: {", ".join([str(elem) for elem in temp])}'
         else:
             if self.__answer():
+                self.length, self.width = self.__matrix_size()
                 self.matrix = self.__input_matrix()
             else:
-                self.matrix = self.__generate_matrix()
+                self.matrix, self.length, self.width = self.__generate_matrix()
+
+    def __mmm(self):
+        temp = []
+        for i in range(len(self.matrix)):
+            if len(self.matrix[i]) != self.width:
+                temp.append(i + 1)
+        return temp
 
     def __answer(self):
         # Задать вопрос пользователю, какую матрицу создать, если он не указал заранее матрицу.
@@ -35,17 +43,41 @@ class Matrix:
             else:
                 print('Вы ввели неправильное число!')
 
+    def __matrix_size(self):
+        # Ввод размера матрицы, если нужно ввести матрицу построчно.
+        while True:
+            print('Введите высоту матрицы: ')
+            try:
+                length = int(input('>\t'))
+                if length <= 0:
+                    print('Высота матрицы должна быть положительным числом.')
+                    continue
+            except ValueError:
+                print('Введено значение, которое не является числом.')
+                continue
+            print()
+            print('Введите ширину матрицы: ')
+            try:
+                width = int(input('>\t'))
+                if width <= 0:
+                    print('Ширина матрицы должна быть положительным числом.')
+                    continue
+            except ValueError:
+                print('Введено значение, которое не является числом.')
+                continue
+            return length, width
+
     def __input_matrix(self):
         # Ввод данных для матрицы, построчно.
         matrix = []
         print("Введите элементы матрицы построчно:")
-        for i in range(3):
+        for i in range(self.length):
             while True:
-                row_input = input(f"Введите 3 элементов для строки {i + 1} через пробел:\n>\t")
+                row_input = input(f"Введите {self.width} элементов для строки {i + 1}, через пробел:\n>\t")
                 try:
                     row = list(map(int, row_input.split()))
-                    if len(row) != 3:
-                        print(f"Ожидается 3 элементов. Попробуйте снова.")
+                    if len(row) != self.width:
+                        print(f"Ожидается {self.width} элементов. Попробуйте снова.")
                         continue
                     matrix.append(row)
                     break
@@ -54,21 +86,25 @@ class Matrix:
         return matrix
 
     def __generate_matrix(self):
-        # Рандомная генерация матрицы 3 на 3.
-        return [[random.randint(-10, 10) for _ in range(3)] for _ in range(3)]
+        # Рандомная генерация матрицы.
+        length = random.randint(1, 5)
+        width = random.randint(1, 5)
+        return [[random.randint(-10, 10) for _ in range(width)] for _ in range(length)], length, width
 
     def output_matrix(self):
         # Вывод матрицы.
-        return f'Матрица:\n{"\n".join(["\t".join(map(str, row)) for row in self.matrix])}'
+        matrix = "\n".join(["\t".join(map(str, row)) for row in self.matrix])
+        return f'Матрица:\n{matrix}'
 
     def output_size(self):
         # Вывод размера матрицы.
-        return f'Размер матрицы:\nВ длину = {self.length}\nВ ширину = {self.width}'
+        return f'Размер матрицы:\t{self.length} X {self.width}'
 
     def transpose(self):
         # Транспонирование матрицы.
         matrix = [list(row) for row in zip(*self.matrix)]
         self.matrix = matrix
+        self.length, self.width = len(matrix), len(matrix[0]) if matrix else 0
 
     def multiply_by_number(self, number):
         # Умножение матрицы на число.
@@ -77,16 +113,22 @@ class Matrix:
 
     def add(self, other):
         # Сложение матриц.
+        if self.length != other.length or self.width != other.width:
+            raise ValueError('Матрицы должны быть одного размера для сложения')
         matrix = [[self.matrix[i][j] + other.matrix[i][j] for j in range(self.width)] for i in range(self.length)]
         self.matrix = matrix
 
     def subtract(self, other):
         # Вычитание матриц.
+        if self.length != other.length or self.width != other.width:
+            raise ValueError('Матрицы должны быть одного размера для вычитания')
         matrix = [[self.matrix[i][j] - other.matrix[i][j] for j in range(self.width)] for i in range(self.length)]
         self.matrix = matrix
 
     def multiply(self, other):
         # Умножение матриц.
+        if self.width != other.length:
+            raise ValueError('...')
         matrix = [[0 for _ in range(other.width)] for _ in range(self.length)]
         for i in range(self.length):
             for j in range(other.width):
@@ -97,7 +139,7 @@ class Matrix:
 
 # Создаем две матрицы 3x3
 matrix_1 = [
-    [7, 7, -2],
+    [7, 7, -2, 3],
     [1, -2, -4],
     [3, -6, 4]
 ]
