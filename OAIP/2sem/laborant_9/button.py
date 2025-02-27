@@ -3,12 +3,12 @@ import random
 
 class Button:
     def __init__(self):
-        self.hover = False # Состояние "наводит курсор на кнопку"
-        self.click = False # Состояние "нажимает на кнопку"
-        self.long_press = False # Состояние "долгое нажатие"
-        self.active = True # Состояние "активности кнопки"
-        self.success = True # Состояние "успешного выполнения нажатия кнопки"
-        self.count_click = 0 # Сколько была нажата кнопка
+        self.hover = False  # Состояние "наводит курсор на кнопку"
+        self.click = False  # Состояние "нажимает на кнопку"
+        self.long_press = False  # Состояние "долгое нажатие"
+        self.active = True  # Состояние "активности кнопки"
+        self.success = True  # Состояние "успешного выполнения нажатия кнопки"
+        self.count_click = 0  # Сколько была нажата кнопка
 
     def __random_success(self):
         if random.randint(1, 10) <= 8:
@@ -94,7 +94,7 @@ class Button:
                     print('Вы передвинули курсор на кнопку!')
                     self.hover = True
                     break
-                elif quest.lower() ==  'нет':
+                elif quest.lower() == 'нет':
                     print('Вы, по какой-то причине, не захотели передвигать курсор.')
                     break
                 else:
@@ -143,3 +143,4 @@ class Button:
             print('Кнопка активна.')
         else:
             print('Кнопка не активна.')
+            
