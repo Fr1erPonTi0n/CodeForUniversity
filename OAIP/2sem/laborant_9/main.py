@@ -2,6 +2,7 @@ from chest import Chest
 from button import Button
 from pet import Pet
 
+
 def chest():
     exam = Chest()
     print(f"Вы видите сундук типа: {exam.get_rarity()}.")
@@ -41,6 +42,7 @@ def chest():
         else:
             print('Ты ввёл неправильное число!')
 
+
 def button():
     exam = Button()
     print(f"Вы видите кнопку.")
@@ -72,6 +74,7 @@ def button():
             return
         else:
             print('Ты ввёл неправильное число!')
+
 
 def pet():
     print('Вы входите в комнату...')
@@ -138,3 +141,4 @@ if __name__ == "__main__":
             break
         else:
             print('Ты ввёл неправильное число!')
+            
