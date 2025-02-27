@@ -27,7 +27,6 @@ class Pet:
         self.happiness = min(100, self.happiness + random.randint(5, 15))
         print(f'{self.name} покормлен. Уровень голода: {self.hunger}')
 
-
     def play(self):
         if self.is_alive():
             print(f'{self.name} умер...')
@@ -65,3 +64,4 @@ class Pet:
         print(f'Счастье - {self.happiness}.')
         print(f'Энергия - {self.energy}.')
         print(f'Состояние сна - {"Спит" if self.is_sleeping else "Бодрствует"}.')
+        
