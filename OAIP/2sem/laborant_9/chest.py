@@ -1,6 +1,6 @@
 import random
 
-all_items =  {
+all_items = {
     "Зелье лечения": True,
     "Большое зелье лечения": True,
     "Зелье магии": True,
@@ -116,19 +116,22 @@ all_items =  {
     "Череп мамонта": False
 }
 
+
 class Chest:
     def __init__(self):
-        self.lock = False # Сундук закрыт или нет.
-        self.code = 0 # Код для закрытия сундука.
-        self.rarity = random.randint(1, 4) # Уровень редкости - 1: Редкий, 2: Эпический, 3: Мифический, 4: Легендарный.
-        self.chest_items = {} # Предметы в сундуке.
-        self.player_items = {} # Предметы игрока в инвентаре.
+        self.lock = False  # Сундук закрыт или нет.
+        self.code = 0  # Код для закрытия сундука.
+        self.rarity = random.randint(1, 4)  # Уровень редкости - 1: Редкий, 2: Эпический, 3: Мифический, 4: Легендарный.
+        self.chest_items = {}  # Предметы в сундуке.
+        self.player_items = {}  # Предметы игрока в инвентаре.
 
-        if self.rarity == 4 or random.randint(1, 10) <= self.rarity + 5: # Определение шанса золота в сундуке в зависимости от редкости.
+        # Определение шанса золота в сундуке в зависимости от редкости.
+        if self.rarity == 4 or random.randint(1, 10) <= self.rarity + 5:
             self.chest_items['Золото'] = random.randint(8, 110) * self.rarity
 
-        if self.rarity not in (1, 2) or random.randint(1, 10) <= self.rarity + 4: # Определение шанса предметов в сундуке в зависимости от редкости.
-            count_items = random.randint(1, 3) * self.rarity # Кол-во предметов умножаем на редкость сундука.
+        # Определение шанса предметов в сундуке в зависимости от редкости.
+        if self.rarity not in (1, 2) or random.randint(1, 10) <= self.rarity + 4:
+            count_items = random.randint(1, 3) * self.rarity  # Кол-во предметов умножаем на редкость сундука.
             for i in range(count_items):
                 temp_item = random.choice(list(all_items.items()))
                 item_name, item_value = temp_item[0], temp_item[1]
@@ -136,13 +139,14 @@ class Chest:
                     if item_value:  # Если предмет уже есть, проверяем умение стака предмета
                         new_value = random.randint(1, 4)
                         self.chest_items[item_name] += new_value * self.rarity  # Увеличиваем количество предмета
-                else: # Если предмета нет, добавляем его в self.items
+                else:  # Если предмета нет, добавляем его в self.items
                     self.chest_items[item_name] = item_value
                     if item_value:  # Проверяем умение стака предмета
                         new_value = random.randint(1, 2)
-                        self.chest_items[item_name] += (new_value * self.rarity) - 1 # Добавляем значение new_values
+                        self.chest_items[item_name] += (new_value * self.rarity) - 1  # Добавляем значение new_values
 
-        if self.rarity not in (1, 2, 3) or random.randint(1, 10) <= self.rarity + 5: # Определение шанса того, что сундук будет закрыт, зависит от редкости.
+        # Определение шанса того, что сундук будет закрыт, зависит от редкости.
+        if self.rarity not in (1, 2, 3) or random.randint(1, 10) <= self.rarity + 5:
             self.lock = True
 
     def pick_lock(self):
