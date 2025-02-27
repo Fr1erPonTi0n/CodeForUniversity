@@ -64,4 +64,4 @@ class Pet:
         print(f'Голод - {self.hunger}.')
         print(f'Счастье - {self.happiness}.')
         print(f'Энергия - {self.energy}.')
-        print(f'Состояние сна - {'Спит' if self.is_sleeping else 'Бодрствует'}.')
+        print(f'Состояние сна - {"Спит" if self.is_sleeping else "Бодрствует"}.')
