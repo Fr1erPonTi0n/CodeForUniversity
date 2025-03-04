@@ -123,12 +123,18 @@ class Chest:
         self.code = 0  # Код для закрытия сундука.
         self.rarity = random.randint(1, 4)  # Уровень редкости - 1: Редкий, 2: Эпический, 3: Мифический, 4: Легендарный.
         self.chest_items = {}  # Предметы в сундуке.
-        self.player_items = {}  # Предметы игрока в инвентаре.
 
+        # Вызовы функций для случайного получения предметов, золота и состояния закрытости сундука.
+        self.__get_gold()
+        self.__get_item()
+        self.__get_lock()
+
+    def __get_gold(self):
         # Определение шанса золота в сундуке в зависимости от редкости.
         if self.rarity == 4 or random.randint(1, 10) <= self.rarity + 5:
             self.chest_items['Золото'] = random.randint(8, 110) * self.rarity
 
+    def __get_item(self):
         # Определение шанса предметов в сундуке в зависимости от редкости.
         if self.rarity not in (1, 2) or random.randint(1, 10) <= self.rarity + 4:
             count_items = random.randint(1, 3) * self.rarity  # Кол-во предметов умножаем на редкость сундука.
@@ -145,41 +151,39 @@ class Chest:
                         new_value = random.randint(1, 2)
                         self.chest_items[item_name] += (new_value * self.rarity) - 1  # Добавляем значение new_values
 
+    def __get_lock(self):
         # Определение шанса того, что сундук будет закрыт, зависит от редкости.
         if self.rarity not in (1, 2, 3) or random.randint(1, 10) <= self.rarity + 5:
             self.lock = True
 
-    def pick_lock(self):
+    def pick_lock(self, user_input=None):
+        try:
+            user_input = int(user_input)
+        except ValueError:
+            print('Введен не корректый тип данных, требуется число.')
+            return
+
         if self.lock and self.code == 0:
-            while True:
-                random_number = random.randint(2, 6)
-                open_number = random.randint(1, random_number)
-                try:
-                    number = int(input(f'Введите число для взлома замка от 1 до {random_number}:\t'))
-                    if number < 1 or number > random_number:
-                        print(f'Число должно быть от 1 до {random_number}, попробуйте ещё раз.')
-                        continue
-                    break
-                except ValueError:
-                    print('Вы ввели не число, попробуйте ещё раз.')
-            if number == open_number:
+            open_number = random.randint(1, 5)
+            if user_input is None:
+                print('Введите число для взлома в аргумент функции.')
+            else:
+                if user_input < 1 or user_input > 5:
+                    print(f'Число должно быть от 1 до 5, попробуйте ещё раз.')
+            if user_input == open_number:
                 print('Замок взломан!')
                 self.lock = False
             else:
                 print('Замок не взломан, попробуйте ещё раз!')
+
         elif self.lock:
-            while True:
-                try:
-                    number = int(input('Введите число для открытие сундука:\t'))
-                except ValueError:
-                    print('Не правильно введено число.')
-                    continue
-                if number == self.code:
-                    print('Сундук открыт!')
-                    self.lock = False
-                    break
-                else:
-                    print('Сундук не открылся, попробуйте ещё раз!')
+            if user_input is None:
+                print('Введите код для открытия сундука в аргумент функции.')
+            if user_input == self.code:
+                print('Сундук открыт!')
+                self.lock = False
+            else:
+                print('Сундук не открылся, попробуйте ещё раз!')
         else:
             print('Сундук был уже открыт!')
 
@@ -204,24 +208,27 @@ class Chest:
                     else:
                         print(f'>\t{item_name}')
 
-    def close_chest(self):
+    def close_chest(self, user_input=None):
+        try:
+            user_input = int(user_input)
+        except ValueError or TypeError:
+            print('Введен не корректый тип данных, требуется число.')
+            return
         if self.lock:
             print('Сундук закрыт. Взломайте его или откройте ключом!' if self.code == 0
                   else 'Сундук закрыт специальным ключом, надо открыть его!')
             return
-        while True:
-            try:
-                number = int(input('Введите число для открытие замка, не меньше 1:\t'))
-            except ValueError:
-                print('Не правильно введено число.')
-                continue
-            if number > 0:
-                print('Замок закрыт на ключ! Запомните его.')
-                self.lock = True
-                self.code = number
-                break
 
-    def get_item(self):
+        if user_input is None:
+            print('Введите число для специального ключа в аргумент функции.')
+        elif user_input > 0:
+            print('Замок закрыт на ключ! Запомните его.')
+            self.lock = True
+            self.code = user_input
+        else:
+            print('Ваше число меньше 1.')
+
+    def get_item(self, item):
         if self.lock:
             print('Сундук закрыт. Взломайте его или откройте ключом!' if self.code == 0
                   else 'Сундук закрыт специальным ключом, надо открыть его!')
@@ -229,14 +236,13 @@ class Chest:
         if self.chest_items == {}:
             print('Сундук пуст!')
             return
-        item = input('Напишите название предмета в сундуке:\t')
         if item not in self.chest_items:
             print('Такого предмета нет в сундуке.')
             return
         if self.chest_items[item]:
             while True:
                 try:
-                    count = int(input('В каком количестве вы хотите взять этот тип предмета:\t'))
+                    count = int(input('В каком количестве вы хотите взять этот тип предмета:\n>\t'))
                 except ValueError:
                     print('Не правильно введено число.')
                     continue
@@ -247,61 +253,11 @@ class Chest:
                     print('Количество предмета превышает доступное.')
                     continue
                 else:
-                    self.player_items[item] = self.player_items.get(item, 0) + count
                     self.chest_items[item] -= count
                     if self.chest_items[item] == 0:
                         del self.chest_items[item]  # Удаляем предмет, если его количество стало нулевым
-                    print(f'Предмет {item} в количестве {count} успешно взят!')
-                    break
+                    return item, count
         else:
-            self.player_items[item] = False
             del self.chest_items[item]
-            print(f'Предмет {item} успешно взят!')
-
-    def input_item(self):
-        if self.lock:
-            print('Сундук закрыт. Взломайте его или откройте ключом!' if self.code == 0
-                  else 'Сундук закрыт специальным ключом, надо открыть его!')
-            return
-        if self.player_items == {}:
-            print('Инвентарь игрока пуст!')
-            return
-        item = input('Напишите название предмета из вашего инвентаря:\t')
-        if item not in self.player_items:
-            print('Такого предмета нет в вашем инвентаре.')
-            return
-        if self.player_items[item]:
-            while True:
-                try:
-                    count = int(input('В каком количестве вы хотите положить этот тип предмета в сундук:\t'))
-                except ValueError:
-                    print('Не правильно введено число.')
-                    continue
-                if count <= 0:
-                    print('Количество должно быть больше нуля.')
-                elif count > self.player_items[item]:
-                    print('Количество предмета превышает доступное в вашем инвентаре.')
-                else:
-                    self.chest_items[item] = self.chest_items.get(item, 0) + count
-                    self.player_items[item] -= count
-                    if self.player_items[item] == 0:
-                        del self.player_items[item]  # Удаляем предмет, если его количество стало нулевым
-                    print(f'Предмет "{item}" в количестве {count} успешно положен в сундук!')
-                    break
-        else:
-            self.chest_items[item] = False
-            del self.player_items[item]
-            print(f'Предмет "{item}" успешно взят!')
-
-    def open_player_inventor(self):
-        print(f'Инвентарь игрока открывается...')
-        if not self.player_items:
-            print('В инвентаре игрока ничего нет!')
-        else:
-            print('Вот что лежит в инвентаре игрока:')
-            if self.player_items:
-                for item_name, item_value in self.player_items.items():
-                    if item_value is not False:
-                        print(f'>\t{item_name} - {item_value} шт.')
-                    else:
-                        print(f'>\t{item_name}')
+            return item, None
+            
