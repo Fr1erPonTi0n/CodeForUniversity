@@ -2,6 +2,7 @@ from chest import Chest
 from button import Button
 from pet import Pet
 
+
 def chest():
     exam = Chest()
     print(f"Вы видите сундук типа: {exam.get_rarity()}.")
@@ -11,10 +12,8 @@ def chest():
         print("(1) Попытаться открыть сундук.")
         print("(2) Открыть сундук или вскрыть сундук.")
         print('(3) Закрыть на ключ сундук.')
-        print("(4) Добавить предмет из инвентаря в сундук.")
-        print("(5) Взять предмет из сундука в инвентарь.")
-        print("(6) Открыть инвентарь игрока.")
-        print("(7) Уйти.")
+        print("(4) Взять предмет из сундука.")
+        print("(5) Уйти.")
         try:
             choice_chest = int(input(">\t"))
         except ValueError:
@@ -24,22 +23,22 @@ def chest():
         if choice_chest == 1:
             exam.open_chest()
         elif choice_chest == 2:
-            exam.pick_lock()
+            exam.pick_lock(input('Введите число:\n>\t'))
         elif choice_chest == 3:
-            exam.close_chest()
+            exam.close_chest(input('Введите число для открытие замка:\n>\t'))
         elif choice_chest == 4:
-            exam.input_item()
+            get_items = exam.get_item(input('Напишите название предмета в сундуке:\n>\t'))
+            if get_items:
+                print(f'Предмет {get_items[0]} в количестве {get_items[1]} успешно взят!' if get_items[1] else
+                      f'Предмет {get_items[0]} успешно взят!')
         elif choice_chest == 5:
-            exam.get_item()
-        elif choice_chest == 6:
-            exam.open_player_inventor()
-        elif choice_chest == 7:
             print('Ты уходишь от сундука, удачного приключения!')
             print()
             return
 
         else:
             print('Ты ввёл неправильное число!')
+
 
 def button():
     exam = Button()
@@ -72,6 +71,7 @@ def button():
             return
         else:
             print('Ты ввёл неправильное число!')
+
 
 def pet():
     print('Вы входите в комнату...')
