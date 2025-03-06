@@ -47,7 +47,10 @@ class CraftingTable:
             print("Недостаточно ресурсов для крафта Алмазного меча.")
 
     def info(self):
-        return f"Ресурсы на столе крафта: {self.resources}"
+        output = '\n'
+        for key, value in self.resources.items():
+            output += f"{key}: {value}\n"
+        return f">> Ресурсы на столе крафта << {output}"
 
 
 crafting_table = CraftingTable()
@@ -60,13 +63,12 @@ crafting_table.add_resource(Diamond(1))
 print(crafting_table.info())
 
 stone_sword = crafting_table.craft_stone_sword()
-print(stone_sword.info() if stone_sword else 'Крафт предмета не получился')
+print(stone_sword.info() if stone_sword else '>> Крафт предмета не получился <<')
 
 iron_sword = crafting_table.craft_iron_sword()
-print(iron_sword.info() if iron_sword else 'Крафт предмета не получился')
+print(iron_sword.info() if iron_sword else '>> Крафт предмета не получился <<')
 
 diamond_sword = crafting_table.craft_diamond_sword()
-print(diamond_sword.info() if diamond_sword else 'Крафт предмета не получился')
+print(diamond_sword.info() if diamond_sword else '>> Крафт предмета не получился <<')
 
 print(crafting_table.info())
-
