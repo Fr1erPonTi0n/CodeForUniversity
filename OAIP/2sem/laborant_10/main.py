@@ -49,7 +49,14 @@ class CraftingTable:
     def info(self):
         output = '\n'
         for key, value in self.resources.items():
-            output += f"{key}: {value}\n"
+            if key == 'stick':
+                output += f'{"Палка"}: {value}\n'
+            elif key == 'stone':
+                output += f'{"Камень"}: {value}\n'
+            elif key == 'iron':
+                output += f'{"Железо"}: {value}\n'
+            elif key == 'diamond':
+                output += f'{"Алмаз"}: {value}\n'
         return f">> Ресурсы на столе крафта << {output}"
 
 
