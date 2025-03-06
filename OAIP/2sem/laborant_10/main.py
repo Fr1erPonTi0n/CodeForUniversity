@@ -4,8 +4,8 @@ from items import *
 
 
 class CraftingTable:
-    def __init__(self):
-        self.resources = {
+        def __init__(self):
+        self.__resources = {
             'stick': 0,
             'stone': 0,
             'iron': 0,
@@ -14,41 +14,41 @@ class CraftingTable:
 
     def add_resource(self, resource):
         if isinstance(resource, Stick):
-            self.resources['stick'] += resource.get_amount()
+            self.__resources['stick'] += resource.get_amount()
         elif isinstance(resource, Stone):
-            self.resources['stone'] += resource.get_amount()
+            self.__resources['stone'] += resource.get_amount()
         elif isinstance(resource, Iron):
-            self.resources['iron'] += resource.get_amount()
+            self.__resources['iron'] += resource.get_amount()
         elif isinstance(resource, Diamond):
-            self.resources['diamond'] += resource.get_amount()
+            self.__resources['diamond'] += resource.get_amount()
 
     def craft_stone_sword(self):
-        if self.resources['stick'] >= 1 and self.resources['stone'] >= 2:
-            self.resources['stick'] -= 1
-            self.resources['stone'] -= 2
+        if self.__resources['stick'] >= 1 and self.__resources['stone'] >= 2:
+            self.__resources['stick'] -= 1
+            self.__resources['stone'] -= 2
             return StoneSword()
         else:
             print("Недостаточно ресурсов для крафта Алмазного меча.")
 
     def craft_iron_sword(self):
-        if self.resources['stick'] >= 1 and self.resources['iron'] >= 2:
-            self.resources['stick'] -= 1
-            self.resources['iron'] -= 2
+        if self.__resources['stick'] >= 1 and self.__resources['iron'] >= 2:
+            self.__resources['stick'] -= 1
+            self.__resources['iron'] -= 2
             return IronSword()
         else:
             print("Недостаточно ресурсов для крафта Алмазного меча.")
 
     def craft_diamond_sword(self):
-        if self.resources['stick'] >= 1 and self.resources['diamond'] >= 2:
-            self.resources['stick'] -= 1
-            self.resources['diamond'] -= 2
+        if self.__resources['stick'] >= 1 and self.__resources['diamond'] >= 2:
+            self.__resources['stick'] -= 1
+            self.__resources['diamond'] -= 2
             return DiamondSword()
         else:
             print("Недостаточно ресурсов для крафта Алмазного меча.")
 
     def info(self):
         output = '\n'
-        for key, value in self.resources.items():
+        for key, value in self.__resources.items():
             if key == 'stick':
                 output += f'{"Палка"}: {value}\n'
             elif key == 'stone':
