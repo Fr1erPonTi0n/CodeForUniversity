@@ -4,7 +4,7 @@ from items import *
 
 
 class CraftingTable:
-        def __init__(self):
+    def __init__(self):
         self.__resources = {
             'stick': 0,
             'stone': 0,
