@@ -2,7 +2,8 @@ from random import randint as random_number
 
 
 def output_matrix(matrix):
-    matrix = "\n".join(["\t".join(map(str, row[:-1])) + f'\t| {row[-1]}' for row in matrix])
+    matrix = "\n".join(["\t".join(map(str, map(lambda x: round(x, 2), row[:-1]))) + f'\t| {round(row[-1], 2)}'
+                        for row in matrix])
     print(matrix)
 
 
