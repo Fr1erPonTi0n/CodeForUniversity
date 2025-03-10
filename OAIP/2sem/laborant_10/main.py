@@ -11,6 +11,17 @@ class CraftingTable:
             'iron': 0,
             'diamond': 0
         }
+        self.__crafting_recipes = {
+            'stone_sword': {'stick': 1, 'stone': 2},
+            'iron_sword': {'stick': 1, 'iron': 2},
+            'diamond_sword': {'stick': 1, 'diamond': 2}
+        }
+
+        self.__crafting_classes = {
+            'stone_sword': StoneSword,
+            'iron_sword': IronSword,
+            'diamond_sword': DiamondSword
+        }
 
     def add_resource(self, resource):
         if isinstance(resource, Stick):
@@ -22,41 +33,32 @@ class CraftingTable:
         elif isinstance(resource, Diamond):
             self.__resources['diamond'] += resource.get_amount()
 
-    def craft_stone_sword(self):
-        if self.__resources['stick'] >= 1 and self.__resources['stone'] >= 2:
-            self.__resources['stick'] -= 1
-            self.__resources['stone'] -= 2
-            return StoneSword()
+    def craft_item(self, item):
+        if item in self.__crafting_recipes:
+            recipe = self.__crafting_recipes[item]
+            for resource, amount in recipe.items():
+                if self.__resources[resource] < amount:
+                    print(f">> Недостаточно ресурсов для крафта {item.replace('_', ' ').capitalize()}. <<")
+                    return None
+            for resource, amount in recipe.items():
+                self.__resources[resource] -= amount
+            crafted_item_class = self.__crafting_classes[item]
+            return crafted_item_class()
         else:
-            print("Недостаточно ресурсов для крафта Алмазного меча.")
-
-    def craft_iron_sword(self):
-        if self.__resources['stick'] >= 1 and self.__resources['iron'] >= 2:
-            self.__resources['stick'] -= 1
-            self.__resources['iron'] -= 2
-            return IronSword()
-        else:
-            print("Недостаточно ресурсов для крафта Алмазного меча.")
-
-    def craft_diamond_sword(self):
-        if self.__resources['stick'] >= 1 and self.__resources['diamond'] >= 2:
-            self.__resources['stick'] -= 1
-            self.__resources['diamond'] -= 2
-            return DiamondSword()
-        else:
-            print("Недостаточно ресурсов для крафта Алмазного меча.")
+            print(f">> Рецепт для {item} не найден. <<")
+            return None
 
     def info(self):
         output = '\n'
         for key, value in self.__resources.items():
             if key == 'stick':
-                output += f'{"Палка"}: {value}\n'
+                output += f'> {"Палка"}: {value}\n'
             elif key == 'stone':
-                output += f'{"Камень"}: {value}\n'
+                output += f'> {"Камень"}: {value}\n'
             elif key == 'iron':
-                output += f'{"Железо"}: {value}\n'
+                output += f'> {"Железо"}: {value}\n'
             elif key == 'diamond':
-                output += f'{"Алмаз"}: {value}\n'
+                output += f'> {"Алмаз"}: {value}\n'
         return f">> Ресурсы на столе крафта << {output}"
 
 
@@ -69,13 +71,13 @@ crafting_table.add_resource(Diamond(1))
 
 print(crafting_table.info())
 
-stone_sword = crafting_table.craft_stone_sword()
+stone_sword = crafting_table.craft_item('stone_sword')
 print(stone_sword.info() if stone_sword else '>> Крафт предмета не получился <<')
 
-iron_sword = crafting_table.craft_iron_sword()
+iron_sword = crafting_table.craft_item('iron_sword')
 print(iron_sword.info() if iron_sword else '>> Крафт предмета не получился <<')
 
-diamond_sword = crafting_table.craft_diamond_sword()
+diamond_sword = crafting_table.craft_item('diamond_sword')
 print(diamond_sword.info() if diamond_sword else '>> Крафт предмета не получился <<')
 
 print(crafting_table.info())
