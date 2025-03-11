@@ -4,13 +4,13 @@ class Widget:
 class Label(Widget):
     pass
 
-class LineEdit(Widget):
+class LineEdit(Label):
     pass
 
-class TextEdit(Widget):
+class TextEdit(Label):
     pass
 
-class Button(Label):
+class Button(Widget):
     pass
 
 class CheckBox(Button):
