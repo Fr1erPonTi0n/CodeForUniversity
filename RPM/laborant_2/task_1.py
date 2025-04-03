@@ -1,7 +1,7 @@
 class Inventory:
-    def __init__(self, weigth_limit: int = 50):
+    def __init__(self, weight_limit: int = 50):
         self.__items = {}
-        self.__weight_limit = weigth_limit
+        self.__weight_limit = weight_limit
         self.__current_weight = 0
         self.__slots = 20
 
@@ -10,7 +10,7 @@ class Inventory:
                f'{{{", ".join(f"{key}: {value}" for key, value in self.__items.items())}}}'
 
     def __iter__(self):
-        return [[key, value] for key, value in self.__items.items()]
+        return iter(self.__items.items())
 
     def __len__(self):
         return len(self.__items)
