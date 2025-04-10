@@ -15,7 +15,7 @@ class Register:
     def to_int(self):
         return int("".join(map(str, self.value)), 2)  # преобразует список битов в положительное целое число
 
-    def __create_new_register(self, operation: str, result: int) -> 'Register':
+    def __create_new_register(self, operation: str, other: 'Register', result: int) -> 'Register':
         new_register = Register(f"{self.name}{operation}{other.name}")
         new_register.load(result)
         self.flags.update(new_register.value)
