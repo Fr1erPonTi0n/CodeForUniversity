@@ -36,19 +36,20 @@ def sort_files_by_extension(var='1', create_common_folder=False):
             if extension:  # Проверяем, что расширение не пустое
                 # Создаем путь к папке с названием расширения внутри общей папки
                 folder_path = common_folder / extension if create_common_folder else target_path / extension
-            else:
+
+            elif extension is None:
                 folder_path = common_folder / 'Файлы без расширения' if create_common_folder else \
                     target_path / 'Файлы без расширения'
 
-                # Проверяем, существует ли папка
-                if not folder_path.exists():
-                    print(f'Создание папки: {folder_path}')
-                    folder_path.mkdir()  # Создаем папку, если она не существует
+            # Проверяем, существует ли папка
+            if not folder_path.exists():
+                print(f'Создание папки: {folder_path}')
+                folder_path.mkdir()  # Создаем папку, если она не существует
 
-                # Перемещаем файл в соответствующую папку
-                print(f'Перемещение файла {file} в папку {folder_path}')
-                file.rename(folder_path / file.name)
+            # Перемещаем файл в соответствующую папку
+            print(f'Перемещение файла {file} в папку {folder_path}')
+            file.rename(folder_path / file.name)
 
 # Пример использования
 if __name__ == "__main__":
-    sort_files_by_extension('2', False)
+    sort_files_by_extension('3', False)
