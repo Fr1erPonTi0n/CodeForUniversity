@@ -13,7 +13,7 @@ data = {
 
 def main():
     with open('file.json', 'w') as f:
-        f.write(json.dumps(data, indent=4))
+        f.write(json.dumps(data, indent=4, ensure_ascii=False))
 
     with open('file.json') as f:
         loaded_data = json.load(f)
