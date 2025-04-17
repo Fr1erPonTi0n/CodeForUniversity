@@ -6,7 +6,8 @@ def main():
         templates = json.load(f)
 
     for i in range(len(templates)):
-        print(templates[f'data{i + 1}']['name'])
+        if templates[f'data{i + 1}']['city'] == 'Moscow':
+            print(templates[f'data{i + 1}']['name'])
 
 
 if __name__ == '__main__':
