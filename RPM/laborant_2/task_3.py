@@ -1,17 +1,18 @@
 def cache(func):
-    cache_dict ={}
+    cache_dict = {}
 
     def wrapper(*args):
         if args in cache_dict:
-            print(f"\nРезультат для {args} взят из кэша.")
+            print(f"Результат для {args[0]} взят из кэша.")
             return cache_dict[args]
 
         result = func(*args)
         cache_dict[args] = result
-        print(f"\nРезультат для {args} вычислен и сохранен в кэш.")
+        print(f"Результат для {args[0]} вычислен и сохранен в кэш.")
         return result
 
     return wrapper
+
 
 @cache
 def factorial(n):
