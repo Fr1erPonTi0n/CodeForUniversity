@@ -45,22 +45,23 @@ def print_person(person):
     return 'Ничего'
 
 
-list_student = [
-    Student("Дамир", "Губнов", 228),
-    Student("Андрей", "Тихий", 69),
-    Student("Олег", "Грибной", 52)
-]
-
-list_teacher = [
-    Teacher("Сергей", "Губнов", 42, ["Геометрия", "Алгебра"]),
-    Teacher("Анастасия", "Шалих", 1488, ["Программирование"]),
-    Teacher("Гордей", "Жавелий", 911, ["Рисование", "Лепка из глины"])
-]
-
-print("Студенты:")
-for person in list_student:
-    print(print_person(person))
-
-print("Учителя:")
-for person in list_teacher:
-    print(print_person(person))
+if __name__ == '__main__':
+    list_student = [
+        Student("Дамир", "Губнов", 228),
+        Student("Андрей", "Тихий", 69),
+        Student("Олег", "Грибной", 52)
+    ]
+    
+    list_teacher = [
+        Teacher("Сергей", "Губнов", 42, ["Геометрия", "Алгебра"]),
+        Teacher("Анастасия", "Шалих", 1488, ["Программирование"]),
+        Teacher("Гордей", "Жавелий", 911, ["Рисование", "Лепка из глины"])
+    ]
+    
+    print("Студенты:")
+    for person in list_student:
+        print(print_person(person))
+    
+    print("Учителя:")
+    for person in list_teacher:
+        print(print_person(person))
