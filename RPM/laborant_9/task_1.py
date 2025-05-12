@@ -1,30 +1,23 @@
 class InterfaceChecker(type):
-    def __new__(mcs, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):
         required_methods = ['load', 'save']
         for method_name in required_methods:
             if method_name not in attrs:
-                raise TypeError(f"Класс {name} должен реализовывать метод {method_name}")
-        return super().__new__(mcs, name, bases, attrs)
+                raise TypeError(f"У класса отсутствует метод {method_name}")
+        return super().__new__(cls, name, bases, attrs)
 
 
 class CorrectPlugin(metaclass=InterfaceChecker):
     def load(self):
-        print("Загрузка данных")
+        pass
 
     def save(self):
-        print("Сохранение данных")
+        pass
 
 
 class BrokenPlugin(metaclass=InterfaceChecker):
-    def load(self):
-        print("Загрузка данных")
+    def save(self):
+        pass
 
-
-try:
-    BrokenPlugin()
-except TypeError as T:
-    print(f"Обнаружена ошибка типа: {T}")
-
-correct_plugin = CorrectPlugin()
-correct_plugin.load()
-correct_plugin.save()
+    def pprint(self):
+        pass
