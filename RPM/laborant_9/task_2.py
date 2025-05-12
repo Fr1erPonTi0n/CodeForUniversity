@@ -15,17 +15,11 @@ class BaseModel(metaclass=AutoRegister):
 
 
 class User(BaseModel):
-    def __init__(self, name, email):
-        super().__init__()
-        self.name = name
-        self.email = email
+    pass
 
 
 class Product(BaseModel):
-    def __init__(self, name, price):
-        super().__init__()
-        self.name = name
-        self.price = price
+    pass
 
 
 print(BaseModel.registry)
