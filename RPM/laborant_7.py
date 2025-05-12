@@ -70,17 +70,18 @@ class JSONProcessor(DataProcessor):
             file.write(f'Кол-во записей: {len(self.data)}')
 
 
-csv_processor = CSVProcessor()
-json_processor = JSONProcessor()
-
-csv_processor.load_data("data.csv")
-json_processor.load_data("data.json")
-
-csv_record_count = csv_processor.process_data()
-json_record_count = json_processor.process_data()
-
-print(f'Кол-во записей в CSV: {csv_record_count}')
-print(f'Кол-во записей в JSON: {json_record_count}')
-
-csv_processor.save_data('output_csv.txt')
-json_processor.save_data('output_json.txt')
+if __name__ == '__main__':
+    csv_processor = CSVProcessor()
+    json_processor = JSONProcessor()
+    
+    csv_processor.load_data("data.csv")
+    json_processor.load_data("data.json")
+    
+    csv_record_count = csv_processor.process_data()
+    json_record_count = json_processor.process_data()
+    
+    print(f'Кол-во записей в CSV: {csv_record_count}')
+    print(f'Кол-во записей в JSON: {json_record_count}')
+    
+    csv_processor.save_data('output_csv.txt')
+    json_processor.save_data('output_json.txt')
