@@ -124,11 +124,55 @@ class Workers:
         return cleans
 
     @staticmethod
-    def start_cleaning(worker_id: int,
+    def start_cleaning(worker_id: int, 
                        room_id: int) -> str:
-        pass
+        with connect_db() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT COUNT(*) FROM Workers WHERE worker_id = ?", (worker_id,))
+            worker_exists = cursor.fetchone()[0] > 0
+
+            cursor.execute("SELECT COUNT(*) FROM Rooms WHERE room_id = ?", (room_id,))
+            room_exists = cursor.fetchone()[0] > 0
+
+            if not worker_exists:
+                return f"Работник с ID {worker_id} не найден."
+            if not room_exists:
+                return f"Комната с ID {room_id} не найдена."
+
+            cursor.execute(
+                "INSERT INTO Cleanings (room_id, worker_id, cleaning_date, status) VALUES (?, ?, datetime('now'), ?)",
+                (room_id, worker_id, 0)
+            )
+            conn.commit()
+
+            return f"Уборка для комнаты {room_id} начата работником {worker_id}."
 
     @staticmethod
-    def end_cleaning(worker_id: int,
+    def end_cleaning(worker_id: int, 
                      room_id: int) -> str:
-        pass
+        with connect_db() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT COUNT(*) FROM Workers WHERE worker_id = ?", (worker_id,))
+            worker_exists = cursor.fetchone()[0] > 0
+
+            cursor.execute("SELECT COUNT(*) FROM Rooms WHERE room_id = ?", (room_id,))
+            room_exists = cursor.fetchone()[0] > 0
+
+            if not worker_exists:
+                return f"Работник с ID {worker_id} не найден."
+            if not room_exists:
+                return f"Комната с ID {room_id} не найдена."
+
+            cursor.execute(
+                "UPDATE Cleanings SET status = ? WHERE worker_id = ? AND room_id = ? AND status = ?",
+                (1, worker_id, room_id, 0)
+            )
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                return f"Активная уборка для комнаты {room_id} работником {worker_id} не найдена."
+
+            return f"Уборка для комнаты {room_id} завершена работником {worker_id}."
+
