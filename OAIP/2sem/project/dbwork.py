@@ -1,3 +1,4 @@
+import re
 import sqlite3
 import datetime
 
@@ -24,14 +25,14 @@ class Guests:
                     ''', (name, surname, patronymic, patronymic, phone, passport_num, preferences, preferences))
             existing_guest = cursor.fetchone()
             if existing_guest:
-                return "Гость уже был зарегестрирован!"
-            reg_date = datetime.datetime.now().isoformat()
+                return "Гость уже был зарегистрирован!"
+            reg_date = datetime.datetime.now().strftime("%Y-%m-%d")
             cursor.execute('''
                         INSERT INTO Guests (name, surname, patronymic, phone, passport_num, reg_date, preferences)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                     ''', (name, surname, patronymic, phone, passport_num, reg_date, preferences))
             conn.commit()
-        return "Гость успешно зарегестирован!"
+        return "Гость успешно зарегистрирован!"
 
     @staticmethod
     def get_guest(guest_id: int) -> list:
@@ -56,6 +57,20 @@ class Guests:
             cursor.execute('DELETE FROM Guests WHERE guest_id = ?', (guest_id,))
             conn.commit()
         return "Гость успешно удалён!" if cursor.rowcount > 0 else "Гость не найден!"
+
+    @staticmethod
+    def reservation_room(guest_id: int,
+                         check_our_date: str,
+                         check_in_date: str,
+                         money: int,
+                         room_id: int = None) -> str:
+        pass # Проверка введеной комнаты (занята, сколько стоит, выбрать комнату которая по деньгам сойдет),
+             # если не выбрана комната (выбирается рандом по деньгам === наверное отдельная функция
+             # вписывание человека в комнату после проверки дат и всего подобного
+
+    @staticmethod
+    def check_room(guest_id: int) -> str:
+        pass # Проверка бронирования по гостю
 
 
 class Workers:
@@ -83,7 +98,7 @@ class Workers:
             existing_worker = cursor.fetchone()
             if existing_worker:
                 return "Работник уже был зарегистрирован!"
-            hire_date = datetime.datetime.now().isoformat()
+            hire_date = datetime.datetime.now().strftime("%Y-%m-%d")
             cursor.execute('''INSERT INTO Workers (name, surname, patronymic, phone, passport_num, date_birth, position, 
                               salary, place_residence, citizenship, hire_date, work_schedule)
                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (
@@ -125,7 +140,8 @@ class Workers:
 
     @staticmethod
     def start_cleaning(worker_id: int, 
-                       room_id: int) -> str:
+                       room_id: int,
+                       cleaning_date: str) -> str:
         with connect_db() as conn:
             cursor = conn.cursor()
 
@@ -139,14 +155,16 @@ class Workers:
                 return f"Работник с ID {worker_id} не найден."
             if not room_exists:
                 return f"Комната с ID {room_id} не найдена."
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", cleaning_date):
+                return 'Неправильно введена дата: гггг-мм-дд.'
 
             cursor.execute(
-                "INSERT INTO Cleanings (room_id, worker_id, cleaning_date, status) VALUES (?, ?, datetime('now'), ?)",
-                (room_id, worker_id, 0)
+                "INSERT INTO Cleanings (room_id, worker_id, cleaning_date, status) VALUES (?, ?, ?, ?)",
+                (room_id, worker_id, cleaning_date, 0)
             )
             conn.commit()
 
-            return f"Уборка для комнаты {room_id} начата работником {worker_id}."
+            return f"Уборка для комнаты {room_id} начата работником {worker_id} в {cleaning_date}."
 
     @staticmethod
     def end_cleaning(worker_id: int, 
