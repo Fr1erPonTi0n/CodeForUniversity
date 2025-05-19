@@ -183,6 +183,45 @@ class Workers:
 
 class Rooms:
     @staticmethod
+    def add_room(room_num: int,
+                 room_type: str,
+                 price_day: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''SELECT * FROM Rooms WHERE room_num = ?))''', (room_num,))
+            existing_worker = cursor.fetchone()
+            if existing_worker:
+                return "Комната уже была зарегистрирована!"
+            cursor.execute('''INSERT INTO Rooms (room_num, room_type, price_day) 
+                                VALUES (?, ?, ?)''', (room_num, room_type, price_day))
+            conn.commit()
+        return "Комната успешно зарегистрирована!"
+
+    @staticmethod
+    def delete_room(room_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM Guests WHERE room_id = ?', (room_id,))
+            conn.commit()
+        return "Комната успешно удалена!" if cursor.rowcount > 0 else "Комната не найдена!"
+
+    @staticmethod
+    def get_room(room_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM Guests WHERE room_id = ?', (room_id,))
+            room = cursor.fetchone()
+        return room if room else "Комната не найдена!"
+
+    @staticmethod
+    def get_rooms() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM Rooms')
+            rooms = cursor.fetchall()
+        return rooms
+
+    @staticmethod
     def check_availability_room(room_id: int) -> list:
         with connect_db() as conn:
             cursor = conn.cursor()
@@ -275,7 +314,39 @@ class Rooms:
 
 class Services:
     @staticmethod
-    def check_service(service_id: int):
+    def add_service(name: str,
+                    price: int,
+                    description: str = None) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''SELECT * FROM Services WHERE name = ? AND price = ? AND description = ?))''',
+                           (name, price, description))
+            existing_worker = cursor.fetchone()
+            if existing_worker:
+                return "Услуга уже была зарегистрирована!"
+            cursor.execute('''INSERT INTO Services (name, price, description) 
+                                VALUES (?, ?, ?)''', (name, price, description))
+            conn.commit()
+        return "Услуга успешно зарегистрирована!"
+
+    @staticmethod
+    def delete_service(service_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('DELETE FROM Guests WHERE service_id = ?', (service_id,))
+            conn.commit()
+        return "Услуга успешно удалена!" if cursor.rowcount > 0 else "Услуга не найдена!"
+
+    @staticmethod
+    def get_services() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM Rooms')
+            services = cursor.fetchall()
+        return services
+
+    @staticmethod
+    def get_service(service_id: int):
         with connect_db() as conn:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM Services WHERE service_id = ?', (service_id,))
@@ -283,10 +354,10 @@ class Services:
         return service if service else "Услуга не найдена!"
 
     @staticmethod
-    def get_service(guest_id: int,
-                    service_id: int,
-                    quantity: int):
-        if Guests.get_guest(guest_id) is list and Services.check_service(service_id):
+    def check_service(guest_id: int,
+                      service_id: int,
+                      quantity: int):
+        if Guests.get_guest(guest_id) is list and Services.get_service(service_id):
             with connect_db() as conn:
                 cursor = conn.cursor()
 
@@ -296,8 +367,9 @@ class Services:
                 cursor.execute("SELECT * FROM Services WHERE service_id = ?", (service_id,))
                 service = cursor.fetchone()
 
-                total_price = service[3] * quantity  # price from the Services table
-                return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги '{service[1]}'. Общая стоимость: {total_price}."
+                total_price = service[3] * quantity
+                return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги '{service[1]}'. Общая стоимость: " \
+                       f"{total_price}."
 
 
 class Different:
