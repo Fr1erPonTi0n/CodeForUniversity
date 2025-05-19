@@ -63,7 +63,7 @@ class Workers:
     @staticmethod
     def reg_worker(name: str,
                    surname: str,
-                   phone: str,
+                   phone: int,
                    passport_num: str,
                    date_birth: str,
                    position: str,
@@ -222,20 +222,12 @@ class Rooms:
         return rooms
 
     @staticmethod
-    def check_availability_room(room_id: int) -> list:
-        with connect_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM Rooms WHERE room_id = ?', (room_id,))
-            room = cursor.fetchone()
-        return room if room else "Комната не найдена!"
-
-    @staticmethod
     def reservation_room(guest_id: int,
                          check_out_date: str,
                          check_in_date: str,
                          money: int,
                          room_id: int = None) -> str:
-        if Guests.get_guest(guest_id) is list and Rooms.check_availability_room(room_id) is list:
+        if Guests.get_guest(guest_id) is list and Rooms.get_room(room_id) is list:
             with connect_db() as conn:
                 cursor = conn.cursor()
                 # Проверка доступных комнат по цене
@@ -264,7 +256,7 @@ class Rooms:
 
     @staticmethod
     def rental_room(room_id: int):
-        if Rooms.check_availability_room(room_id) is list:
+        if Rooms.get_room(room_id) is list:
             with connect_db() as conn:
                 cursor = conn.cursor()
                 # Проверка статуса уборки
@@ -372,7 +364,7 @@ class Services:
                        f"{total_price}."
 
 
-class Different:
+class Other:
     @staticmethod
     def one():
         pass
