@@ -28,9 +28,7 @@ class AssemblerCommands:
         val1 = op1 if isinstance(op1, int) else self.registers[op1].to_int()
         val2 = op2 if isinstance(op2, int) else self.registers[op2].to_int()
 
-        self.flags.zero = (val1 == val2)
-        self.flags.negative = (val1 < val2)
-
+        print((val1 == val2), (val1 < val2))
 
     def push(self, value: str | int):
         if isinstance(value, int):
