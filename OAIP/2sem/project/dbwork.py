@@ -230,23 +230,26 @@ class Rooms:
         if Guests.get_guest(guest_id) is list and Rooms.get_room(room_id) is list:
             with connect_db() as conn:
                 cursor = conn.cursor()
-                # Проверка доступных комнат по цене
                 if room_id is None:
                     cursor.execute("SELECT room_id FROM Rooms WHERE price_day <= ? AND status = 0", (money,))
                     available_rooms = cursor.fetchall()
                     if available_rooms:
-                        room_id = available_rooms[0][0]  # Выбор первой доступной комнаты
+                        room_id = available_rooms[0][0]
                     else:
                         return "Нет доступных комнат по вашему бюджету."
-                # Проверка занятости комнаты
+                cursor.execute("SELECT * FROM Rooms WHERE room_id = ? AND price_day <= ? AND status = 0",
+                               (room_id, money))
+                if cursor:
+                    return "Не хватает денег на аренду комнаты или комната занята!"
+
                 cursor.execute(
                     "SELECT check_in_date, check_out_date FROM Bookings WHERE room_id = ? AND (check_in_date <= ? "
                     "AND check_out_date >= ?)",
                     (room_id, check_in_date, check_in_date))
+
                 dates = cursor.fetchone()
                 if dates:
                     return f"Комната занята в указанные даты {dates[0]} - {dates[1]}."
-                # Бронирование комнаты
                 cursor.execute(
                     "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?)",
                     (guest_id, room_id, check_in_date, check_out_date))
@@ -255,12 +258,12 @@ class Rooms:
         return "Комната или гость нету в базе данных!"
 
     @staticmethod
-    def rental_room(room_id: int):
+    def rental_room(room_id: int) -> str:
         if Rooms.get_room(room_id) is list:
             with connect_db() as conn:
                 cursor = conn.cursor()
-                # Проверка статуса уборки
-                cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1", (room_id,))
+                cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1",
+                               (room_id,))
                 cleaning_status = cursor.fetchone()
                 if cleaning_status and cleaning_status[0] == 1:
                     cursor.execute("UPDATE Rooms SET status = 0 WHERE room_id = ?", (room_id,))
@@ -338,7 +341,7 @@ class Services:
         return services
 
     @staticmethod
-    def get_service(service_id: int):
+    def get_service(service_id: int) -> list:
         with connect_db() as conn:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM Services WHERE service_id = ?', (service_id,))
@@ -348,7 +351,7 @@ class Services:
     @staticmethod
     def check_service(guest_id: int,
                       service_id: int,
-                      quantity: int):
+                      quantity: int) -> str:
         if Guests.get_guest(guest_id) is list and Services.get_service(service_id):
             with connect_db() as conn:
                 cursor = conn.cursor()
@@ -362,6 +365,7 @@ class Services:
                 total_price = service[3] * quantity
                 return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги '{service[1]}'. Общая стоимость: " \
                        f"{total_price}."
+        return 'Гость или услуги не были найдены!'
 
 
 class Other:
@@ -379,8 +383,4 @@ class Other:
 
     @staticmethod
     def four():
-        pass
-
-    @staticmethod
-    def five():
         pass
