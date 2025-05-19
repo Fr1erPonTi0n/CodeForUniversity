@@ -58,20 +58,6 @@ class Guests:
             conn.commit()
         return "Гость успешно удалён!" if cursor.rowcount > 0 else "Гость не найден!"
 
-    @staticmethod
-    def reservation_room(guest_id: int,
-                         check_our_date: str,
-                         check_in_date: str,
-                         money: int,
-                         room_id: int = None) -> str:
-        pass # Проверка введеной комнаты (занята, сколько стоит, выбрать комнату которая по деньгам сойдет),
-             # если не выбрана комната (выбирается рандом по деньгам === наверное отдельная функция
-             # вписывание человека в комнату после проверки дат и всего подобного
-
-    @staticmethod
-    def check_room(guest_id: int) -> str:
-        pass # Проверка бронирования по гостю
-
 
 class Workers:
     @staticmethod
@@ -194,3 +180,143 @@ class Workers:
 
             return f"Уборка для комнаты {room_id} завершена работником {worker_id}."
 
+
+class Rooms:
+    @staticmethod
+    def check_availability_room(room_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM Rooms WHERE room_id = ?', (room_id,))
+            room = cursor.fetchone()
+        return room if room else "Комната не найдена!"
+
+    @staticmethod
+    def reservation_room(guest_id: int,
+                         check_out_date: str,
+                         check_in_date: str,
+                         money: int,
+                         room_id: int = None) -> str:
+        if Guests.get_guest(guest_id) is list and Rooms.check_availability_room(room_id) is list:
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                # Проверка доступных комнат по цене
+                if room_id is None:
+                    cursor.execute("SELECT room_id FROM Rooms WHERE price_day <= ? AND status = 0", (money,))
+                    available_rooms = cursor.fetchall()
+                    if available_rooms:
+                        room_id = available_rooms[0][0]  # Выбор первой доступной комнаты
+                    else:
+                        return "Нет доступных комнат по вашему бюджету."
+                # Проверка занятости комнаты
+                cursor.execute(
+                    "SELECT check_in_date, check_out_date FROM Bookings WHERE room_id = ? AND (check_in_date <= ? "
+                    "AND check_out_date >= ?)",
+                    (room_id, check_in_date, check_in_date))
+                dates = cursor.fetchone()
+                if dates:
+                    return f"Комната занята в указанные даты {dates[0]} - {dates[1]}."
+                # Бронирование комнаты
+                cursor.execute(
+                    "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?)",
+                    (guest_id, room_id, check_in_date, check_out_date))
+                conn.commit()
+                return "Комната успешно забронирована."
+        return "Комната или гость нету в базе данных!"
+
+    @staticmethod
+    def rental_room(room_id: int):
+        if Rooms.check_availability_room(room_id) is list:
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                # Проверка статуса уборки
+                cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1", (room_id,))
+                cleaning_status = cursor.fetchone()
+                if cleaning_status and cleaning_status[0] == 1:
+                    cursor.execute("UPDATE Rooms SET status = 0 WHERE room_id = ?", (room_id,))
+                    conn.commit()
+                    return "Комната успешно сдана."
+                return "Комната не может быть сдана, так как она в процессе уборки."
+        return "Комнаты нету в базе данных!"
+
+    @staticmethod
+    def check_room(guest_id: int) -> dict or str:
+        if Guests.get_guest(guest_id) is list:
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT room_id, status FROM Bookings WHERE guest_id = ?", (guest_id,))
+                bookings = cursor.fetchall()
+                return {room_id: status for room_id, status in bookings}
+        return 'Гостя нету в базе данных!'
+
+    @staticmethod
+    def check_rooms() -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                        UPDATE Rooms
+                        SET status = (
+                            CASE 
+                                WHEN MAX(Cleanings.status) = 1 THEN 1
+                                WHEN MAX(Bookings.status) = 1 THEN 1
+                                ELSE 0
+                            END
+                        )
+                        FROM Rooms
+                        LEFT JOIN Cleanings ON Rooms.room_id = Cleanings.room_id
+                        LEFT JOIN Bookings ON Rooms.room_id = Bookings.room_id
+                        GROUP BY Rooms.room_id
+                    """)
+
+            conn.commit()
+
+            return 'Успешно обновлены статусы комнат.'
+
+
+class Services:
+    @staticmethod
+    def check_service(service_id: int):
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM Services WHERE service_id = ?', (service_id,))
+            service = cursor.fetchone()
+        return service if service else "Услуга не найдена!"
+
+    @staticmethod
+    def get_service(guest_id: int,
+                    service_id: int,
+                    quantity: int):
+        if Guests.get_guest(guest_id) is list and Services.check_service(service_id):
+            with connect_db() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute("SELECT * FROM Guests WHERE guest_id = ?", (guest_id,))
+                guest = cursor.fetchone()
+
+                cursor.execute("SELECT * FROM Services WHERE service_id = ?", (service_id,))
+                service = cursor.fetchone()
+
+                total_price = service[3] * quantity  # price from the Services table
+                return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги '{service[1]}'. Общая стоимость: {total_price}."
+
+
+class Different:
+    @staticmethod
+    def one():
+        pass
+
+    @staticmethod
+    def two():
+        pass
+
+    @staticmethod
+    def three():
+        pass
+
+    @staticmethod
+    def four():
+        pass
+
+    @staticmethod
+    def five():
+        pass
