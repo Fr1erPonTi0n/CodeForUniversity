@@ -20,8 +20,8 @@ def guests_menu():
             preferences=input('Введите пожелание гостя, если надо:\t')
         ))
     elif guests_var == 2:
-        guest = Guests.get_guest(int(input('Введите ID гостя: ')))
-        if guest:
+        guest = Guests.get_guest(int(input('Введите ID гостя:\t')))
+        if isinstance(guest, str):
             print("\t|\t".join(headers))
             print("\t|\t".join(str(x) for x in guest))
         else:
@@ -31,40 +31,39 @@ def guests_menu():
         for g in Guests.get_guests():
             print("\t|\t".join(str(x) for x in g))
     elif guests_var == 4:
-        print(Guests.delete_guests(guest_id=int(input('Введите ID гостя:'))))
+        print(Guests.delete_guests(guest_id=int(input('Введите ID гостя:\t'))))
     else:
         print("Неверный выбор пункта меню")
 
-def workers_menu():
-    workers_var = int(input("""Выберите нужный пункт для работы с работниками:
-        1) Регистрация работника (имя, фамилия, телефон, паспортный номер, день рождения, должность, оклад, место жительства, гражданство, фамилия, график работы)
-        2) Узнать работника по его id
-        3) Получить список всех работников
-        4) Удалить с базы данных работника
-        5) Узнать чем занят работник
-        6) Назначить работнику уборку
-        7) Прекратить уборку работника\n>\t"""))
 
-    headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Гражданство", "Паспорт", "День рождения", "Должность", "Номер телефона", "Оклад", "График работы", "Отработаные часы", "Место жительства"]
+def workers_menu():
+    workers_var = int(input("""Выберите нужный пункт для работы с работниками: 1) Регистрация работника (имя, 
+    фамилия, телефон, паспортный номер, день рождения, должность, оклад, место жительства, гражданство, фамилия, 
+    график работы) 2) Узнать работника по его id 3) Получить список всех работников 4) Удалить с базы данных 
+    работника 5) Узнать чем занят работник 6) Назначить работнику уборку 7) Прекратить уборку работника\n>\t"""))
+
+    headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Гражданство", "Паспорт", "День рождения", "Должность", "Номер "
+                                                                                                             "телефона",
+                 "Оклад", "График работы", "Отработаные часы", "Место жительства"]
     headers_2 = ["ID", "ID Комнаты", "ID Работника", "Дата уборки", "Статус уборки"]
 
     if workers_var == 1:
         print(Workers.reg_worker(name=input('Введите имя:\t'),
-             surname=input('Введите фамилию:\t'),
-             patronymic=input('Введите отчество:\t'),
-             phone=int(input('Введите телефона:\t')),
-             passport_num=input('Введите паспортный номер:\t'),
-             date_birth=input('Введите день рождение:\t'),
-             position=input('Введите должность:\t'),
-             salary=int(input('Введите оклад:\t')),
-             place_residence=input('Введите место жительства:\t'),
-             citizenship=input('Введите гражданство:\t'),
-             work_schedule=input('Введите график работы:\t')
-        ))
+                                 surname=input('Введите фамилию:\t'),
+                                 patronymic=input('Введите отчество:\t'),
+                                 phone=int(input('Введите телефона:\t')),
+                                 passport_num=input('Введите паспортный номер:\t'),
+                                 date_birth=input('Введите день рождение (ГГГГ-ММ-ДД):\t'),
+                                 position=input('Введите должность:\t'),
+                                 salary=int(input('Введите оклад:\t')),
+                                 place_residence=input('Введите место жительства:\t'),
+                                 citizenship=input('Введите гражданство:\t'),
+                                 work_schedule=input('Введите график работы:\t')
+                                 ))
 
     elif workers_var == 2:
         worker = Workers.get_worker(int(input('Введите ID гостя:\t')))
-        if worker:
+        if isinstance(worker, list):
             print("\t|\t".join(headers_1))
             print("\t|\t".join(str(x) for x in worker))
         else:
@@ -77,20 +76,21 @@ def workers_menu():
         print(Workers.delete_worker(worker_id=int(input('Введите ID работника:\t'))))
     elif workers_var == 5:
         worker = Workers.worker_cleaning(int(input('Введите ID гостя:\t')))
-        if worker:
+        if isinstance(worker, list):
             print("\t|\t".join(headers_2))
             print("\t|\t".join(str(x) for x in worker))
         else:
             print("Уборка/и работника с таким ID не найден/ы")
     elif workers_var == 6:
         print(Workers.start_cleaning(worker_id=int(input('Введите ID работника:\t')),
-                               room_id=int(input('Введите ID комнаты:\t')),
-                               cleaning_date=input('Введите дату уборки:\t')))
+                                     room_id=int(input('Введите ID комнаты:\t')),
+                                     cleaning_date=input('Введите дату уборки:\t')))
     elif workers_var == 7:
         print(Workers.end_cleaning(worker_id=int(input('Введите ID работника:\t')),
-                                   room_id=int(input('Введите ID комнаты'))))
+                                   room_id=int(input('Введите ID комнаты::\t'))))
     else:
         print("Неверный выбор пункта меню")
+
 
 def rooms_menu():
     rooms_var = int(input("""Выберите нужный пункт для работы с гостями:
@@ -114,7 +114,7 @@ def rooms_menu():
         print(Rooms.delete_room(room_id=int(input('Введите ID комнаты:\t'))))
     elif rooms_var == 3:
         room = Rooms.get_room(int(input('Введите ID комнаты:\t')))
-        if room:
+        if isinstance(room, list):
             print("\t|\t".join(headers_1))
             print("\t|\t".join(str(x) for x in room))
         else:
@@ -161,12 +161,12 @@ def services_menu():
 
     if service_var == 1:
         print(Services.add_service(name=input('Введите название услуги:\t'),
-            price=int(input('Введите цену услуги:\t')),
-            description=input('Введите описание услуги (необязательно):\t') or None
-        ))
+                                   price=int(input('Введите цену услуги:\t')),
+                                   description=input('Введите описание услуги (необязательно):\t') or None
+                                   ))
     elif service_var == 2:
         service = Services.get_service(int(input('Введите ID услуги:\t')))
-        if service:
+        if isinstance(service, list):
             print("\t|\t".join(headers))
             print("\t|\t".join(str(x) for x in service))
         else:
@@ -195,11 +195,10 @@ def services_menu():
 
 def other_menu():
     other_var = int(input("""Выберите нужный пункт для работы с гостями:
-            1)Корректировка данных
-            2)Выборка данных (LIKE)
-            3)Выборка данных (BETWEEN)
-            4)Выборка данных (Вложенный запрос)
-            5)Выборка данных (JOIN)\n>\t"""))
+            1)Выборка данных (LIKE)
+            2)Выборка данных (BETWEEN)
+            3)Выборка данных (Вложенный запрос)
+            4)Выборка данных (JOIN)\n>\t"""))
     if other_var == 1:
         Other.one()
     elif other_var == 2:
@@ -208,8 +207,8 @@ def other_menu():
         Other.three()
     elif other_var == 4:
         Other.four()
-    elif other_var == 5:
-        Other.five()
+    else:
+        print("Неверный выбор пункта меню")
 
 
 if __name__ == '__main__':
@@ -219,7 +218,8 @@ if __name__ == '__main__':
         2) Рабочие
         3) Комнаты
         4) Услуги
-        5) Другое (Запросы SQL)\n>\t"""))
+        5) Другое (Запросы SQL)
+        6) Выход\n>\t"""))
         if var == 1:
             guests_menu()
         elif var == 2:
@@ -230,3 +230,7 @@ if __name__ == '__main__':
             services_menu()
         elif var == 5:
             other_menu()
+        elif var == 6:
+            break
+        else:
+            print("Неверный выбор пункта меню")
