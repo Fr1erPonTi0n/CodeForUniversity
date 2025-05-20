@@ -1,3 +1,4 @@
+from tabulate import tabulate
 from dbwork import *
 import sys
 
@@ -10,13 +11,24 @@ def input_int(prompt):
             print("Ошибка: введите целое число!")
 
 
+def print_table(headers, data):
+    if isinstance(data, (list, tuple)):
+        if all(isinstance(row, (list, tuple)) for row in data) and data:
+            print(tabulate(data, headers=headers, tablefmt="grid", stralign="center"))
+        elif data:
+            print(tabulate([data], headers=headers, tablefmt="grid", stralign="center"))
+    else:
+        print(data)
+
+
 def guests_menu():
     try:
         guests_var = input_int("""Выберите нужный пункт для работы с гостями:
         1) Регистрация гостя (имя, фамилия, телефон, паспортный номер, отчество, предпочтения)
         2) Узнать гостя по его id
         3) Получить список всех гостей
-        4) Удалить с базы данных гостя\n>\t""")
+        4) Удалить с базы данных гостя
+        5) Выход\n>\t""")
 
         headers = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
 
@@ -31,21 +43,14 @@ def guests_menu():
             ))
         elif guests_var == 2:
             guest = Guests.get_guest(input_int('Введите ID гостя:\t'))
-            if isinstance(guest, list):
-                print("\t|\t".join(headers))
-                print("\t|\t".join(str(x) if x is not None else "" for x in guest))
-            else:
-                print(guest)
+            print_table(headers, guest)
         elif guests_var == 3:
             guests = Guests.get_guests()
-            if guests:
-                print("\t|\t".join(headers))
-                for g in guests:
-                    print("\t|\t".join(str(x) if x is not None else "" for x in g))
-            else:
-                print("Нет зарегистрированных гостей")
+            print_table(headers, guests)
         elif guests_var == 4:
             print(Guests.delete_guests(guest_id=input_int('Введите ID гостя:\t')))
+        elif guests_var == 5:
+            return
         else:
             print("Неверный выбор пункта меню")
     except Exception as e:
@@ -61,7 +66,8 @@ def workers_menu():
         4) Удалить с базы данных работника 
         5) Узнать чем занят работник 
         6) Назначить работнику уборку 
-        7) Прекратить уборку работника\n>\t""")
+        7) Прекратить уборку работника
+        8) Выход\n>\t""")
 
         headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Гражданство", "Паспорт", "День рождения",
                      "Должность", "Телефон", "Оклад", "График работы", "Место жительства", "Дата найма"]
@@ -83,29 +89,15 @@ def workers_menu():
             ))
         elif workers_var == 2:
             worker = Workers.get_worker(input_int('Введите ID работника:\t'))
-            if isinstance(worker, list):
-                print("\t|\t".join(headers_1))
-                print("\t|\t".join(str(x) if x is not None else "" for x in worker))
-            else:
-                print(worker)
+            print_table(headers_1, worker)
         elif workers_var == 3:
             workers = Workers.get_workers()
-            if workers:
-                print("\t|\t".join(headers_1))
-                for w in workers:
-                    print("\t|\t".join(str(x) if x is not None else "" for x in w))
-            else:
-                print("Нет зарегистрированных работников")
+            print_table(headers_1, workers)
         elif workers_var == 4:
             print(Workers.delete_worker(worker_id=input_int('Введите ID работника:\t')))
         elif workers_var == 5:
             cleans = Workers.worker_cleaning(input_int('Введите ID работника:\t'))
-            if isinstance(cleans, list) and cleans:
-                print("\t|\t".join(headers_2))
-                for clean in cleans:
-                    print("\t|\t".join(str(x) for x in clean))
-            else:
-                print("Уборки не найдены или работник не существует")
+            print_table(headers_2, cleans)
         elif workers_var == 6:
             print(Workers.start_cleaning(
                 worker_id=input_int('Введите ID работника:\t'),
@@ -117,6 +109,8 @@ def workers_menu():
                 worker_id=input_int('Введите ID работника:\t'),
                 room_id=input_int('Введите ID комнаты:\t')
             ))
+        elif workers_var == 8:
+            return
         else:
             print("Неверный выбор пункта меню")
     except Exception as e:
@@ -126,17 +120,19 @@ def workers_menu():
 def rooms_menu():
     try:
         rooms_var = input_int("""Выберите нужный пункт для работы с комнатами:
-            1) Регистрация комнаты
-            2) Удаление комнаты по id
-            3) Получение информации о комнате по id
-            4) Получение информации о всех комнатах
-            5) Аренда комнаты
-            6) Сдача комнаты после аренды
-            7) Проверка комнаты по id гостя
-            8) Проверка всех комнат\n>\t""")
+        1) Регистрация комнаты
+        2) Удаление комнаты по id
+        3) Получение информации о комнате по id
+        4) Получение информации о всех комнатах
+        5) Аренда комнаты
+        6) Сдача комнаты после аренды
+        7) Проверка комнаты по id гостя
+        8) Проверка всех комнат
+        9) Получение информации о всех бронирований
+        10) Выход\n>\t""")
 
         headers_1 = ['ID', 'Номер комнаты', 'Тип комнаты', 'Стоимость в день', 'Статус']
-        headers_3 = ['ID', 'ID Гостя', 'ID Комнаты', 'Дата заезда', 'Дата выезда', 'Статус', 'Стоимость']
+        headers_2 = ['ID', 'ID Гостя', 'ID Комнаты', 'Дата заезда', 'Дата выезда', 'Статус', 'Общая цена']
 
         if rooms_var == 1:
             print(Rooms.add_room(
@@ -148,19 +144,10 @@ def rooms_menu():
             print(Rooms.delete_room(room_id=input_int('Введите ID комнаты:\t')))
         elif rooms_var == 3:
             room = Rooms.get_room(input_int('Введите ID комнаты:\t'))
-            if isinstance(room, list):
-                print("\t|\t".join(headers_1))
-                print("\t|\t".join(str(x) for x in room))
-            else:
-                print(room)
+            print_table(headers_1, room)
         elif rooms_var == 4:
             rooms = Rooms.get_rooms()
-            if rooms:
-                print("\t|\t".join(headers_1))
-                for room in rooms:
-                    print("\t|\t".join(str(x) for x in room))
-            else:
-                print("Нет зарегистрированных комнат")
+            print_table(headers_1, rooms)
         elif rooms_var == 5:
             guest_id = int(input('Введите ID гостя:\t'))
             check_in_date = input('Введите дату заезда (ГГГГ-ММ-ДД):\t')
@@ -183,12 +170,17 @@ def rooms_menu():
         elif rooms_var == 7:
             result = Rooms.check_room(guest_id=input_int('Введите ID гостя:\t'))
             if isinstance(result, dict):
-                for room_id, status in result.items():
-                    print(f"Комната {room_id}: {'Занята' if status else 'Свободна'}")
+                table_data = [[k, "Занята" if v else "Свободна"] for k, v in result.items()]
+                print_table(["ID Комнаты", "Статус"], table_data)
             else:
                 print(result)
         elif rooms_var == 8:
             print(Rooms.check_rooms())
+        elif rooms_var == 9:
+            bookings = Rooms.get_bookings()
+            print_table(headers_2, bookings)
+        elif rooms_var == 10:
+            return
         else:
             print("Неверный выбор пункта меню")
     except Exception as e:
@@ -198,13 +190,16 @@ def rooms_menu():
 def services_menu():
     try:
         service_var = input_int("""Выберите нужный пункт для работы с услугами:
-            1) Добавить услугу
-            2) Получить информацию об услуге по ID
-            3) Получить список всех услуг
-            4) Удалить услугу
-            5) Заказать услугу для гостя\n>\t""")
+        1) Добавить услугу
+        2) Получить информацию об услуге по ID
+        3) Получить список всех услуг
+        4) Удалить услугу
+        5) Заказать услугу для гостя
+        6) Получение информации по заказанным услугам
+        7) Выход\n>\t""")
 
-        headers = ['ID услуги', 'Название', 'Цена', 'Описание']
+        headers_1 = ['ID', 'Название', 'Цена', 'Описание']
+        headers_2 = ['ID', 'ID гостя', 'ID услуги', 'Дата заказа', 'Количество', 'Общяя стоимость']
 
         if service_var == 1:
             print(Services.add_service(
@@ -214,19 +209,10 @@ def services_menu():
             ))
         elif service_var == 2:
             service = Services.get_service(input_int('Введите ID услуги:\t'))
-            if isinstance(service, list):
-                print("\t|\t".join(headers))
-                print("\t|\t".join(str(x) if x is not None else "" for x in service))
-            else:
-                print(service)
+            print_table(headers_1, service)
         elif service_var == 3:
             services = Services.get_services()
-            if services:
-                print("\t|\t".join(headers))
-                for service in services:
-                    print("\t|\t".join(str(x) if x is not None else "" for x in service))
-            else:
-                print("Нет доступных услуг")
+            print_table(headers_1, services)
         elif service_var == 4:
             print(Services.delete_service(
                 service_id=input_int('Введите ID услуги для удаления:\t')
@@ -237,6 +223,11 @@ def services_menu():
                 service_id=input_int('Введите ID услуги:\t'),
                 quantity=input_int('Введите количество:\t')
             ))
+        elif service_var == 6:
+            guest_services = Services.get_guest_services()
+            print_table(headers_2, guest_services)
+        elif service_var == 7:
+            return
         else:
             print("Неверный выбор пункта меню")
     except Exception as e:
@@ -246,10 +237,11 @@ def services_menu():
 def other_menu():
     try:
         other_var = input_int("""Выберите нужный пункт для работы с данными:
-                1) Выборка данных (LIKE)
-                2) Выборка данных (BETWEEN)
-                3) Выборка данных (Вложенный запрос)
-                4) Выборка данных (JOIN)\n>\t""")
+        1) Выборка данных (LIKE)
+        2) Выборка данных (BETWEEN)
+        3) Выборка данных (Вложенный запрос)
+        4) Выборка данных (JOIN)
+        5) Выход\n>\t""")
 
         headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
         headers_2 = ['ID', 'Номер комнаты', 'Тип комнаты', 'Стоимость в день', 'Статус']
@@ -258,39 +250,21 @@ def other_menu():
 
         if other_var == 1:
             output = Other.data_selection_like(input('Введите шаблон для дат регистрации (например 2023%):\t'))
-            if output:
-                print("\t|\t".join(headers_1))
-                for elem in output:
-                    print("\t|\t".join(str(x) if x is not None else "" for x in elem))
-            else:
-                print('Ничего не найдено!')
+            print_table(headers_1, output)
         elif other_var == 2:
             output = Other.data_selection_between(
                 start_price=input_int('Введите минимальную цену:\t'),
                 end_price=input_int('Введите максимальную цену:\t')
             )
-            if output:
-                print("\t|\t".join(headers_2))
-                for elem in output:
-                    print("\t|\t".join(str(x) for x in elem))
-            else:
-                print('Ничего не найдено!')
+            print_table(headers_2, output)
         elif other_var == 3:
             output = Other.data_selection_nested_query(input_int('Введите ID гостя:\t'))
-            if output:
-                print("\t|\t".join(headers_3))
-                for elem in output:
-                    print("\t|\t".join(str(x) for x in elem))
-            else:
-                print('Ничего не найдено!')
+            print_table(headers_3, output)
         elif other_var == 4:
             output = Other.data_selection_join(input_int('Введите ID гостя:\t'))
-            if output:
-                print("\t|\t".join(headers_4))
-                for elem in output:
-                    print("\t|\t".join(str(x) for x in elem))
-            else:
-                print('Ничего не найдено!')
+            print_table(headers_4, output)
+        elif other_var == 5:
+            return
         else:
             print("Неверный выбор пункта меню")
     except Exception as e:
@@ -301,12 +275,12 @@ if __name__ == '__main__':
     while True:
         try:
             var = input_int("""Выберите нужный пункт для управления меню гостиницы "Уют":
-            1) Гости
-            2) Работники
-            3) Комнаты
-            4) Услуги
-            5) Другое (Запросы SQL)
-            6) Выход\n>\t""")
+        1) Гости
+        2) Работники
+        3) Комнаты
+        4) Услуги
+        5) Другое (Запросы SQL)
+        6) Выход\n>\t""")
 
             if var == 1:
                 guests_menu()

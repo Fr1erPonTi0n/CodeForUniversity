@@ -299,20 +299,22 @@ class Rooms:
         with connect_db() as conn:
             cursor = conn.cursor()
 
-            cursor.execute("""
-                        UPDATE Rooms
-                        SET status = (
-                            CASE 
-                                WHEN room_id IN (SELECT room_id FROM Bookings WHERE status = 1) THEN 1
-                                WHEN room_id IN (SELECT room_id FROM Cleanings WHERE status = 0) THEN 1
-                                ELSE 0
-                            END
-                        )
-                    """)
+            cursor.execute("""UPDATE Bookings SET status = CASE WHEN EXISTS (SELECT 1 FROM Rooms 
+                    WHERE Rooms.room_id = Bookings.room_id AND Rooms.status != 0) THEN 1
+                    WHEN EXISTS (SELECT 1 FROM Cleanings WHERE Cleanings.room_id = Bookings.room_id 
+                    AND Cleanings.status != 0) THEN 1 ELSE 0END""")
 
             conn.commit()
 
             return "Успешно обновлены статусы комнат."
+
+    @staticmethod
+    def get_bookings() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Bookings")
+            bookings = cursor.fetchall()
+        return bookings
 
 
 class Services:
@@ -355,6 +357,14 @@ class Services:
             cursor.execute("SELECT * FROM Services WHERE service_id = ?", (service_id,))
             service = cursor.fetchone()
         return service if service else "Услуга не найдена!"
+
+    @staticmethod
+    def get_guest_services() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM GuestServices")
+            guest_services = cursor.fetchall()
+        return guest_services
 
     @staticmethod
     def check_service(guest_id: int,
