@@ -2,7 +2,6 @@ import re
 import sqlite3
 import datetime
 
-
 def connect_db():
     return sqlite3.connect("base.db")
 
@@ -223,15 +222,15 @@ class Rooms:
     def reservation_room(guest_id: int,
                          check_out_date: str,
                          check_in_date: str,
-                         money: int,
-                         room_id: int = None) -> str:
+                         room_id: int = 0,
+                         money: int = 0) -> str:
         guest = Guests.get_guest(guest_id)
         if isinstance(guest, str):
             return "Гость не найден!"
             
         with connect_db() as conn:
             cursor = conn.cursor()
-            if room_id is None:
+            if room_id == 0:
                 cursor.execute("SELECT room_id FROM Rooms WHERE price_day <= ? AND status = 0", (money,))
                 available_rooms = cursor.fetchall()
                 if available_rooms:
@@ -239,11 +238,11 @@ class Rooms:
                 else:
                     return "Нет доступных комнат по вашему бюджету."
             
-            cursor.execute("SELECT * FROM Rooms WHERE room_id = ? AND price_day <= ? AND status = 0",
-                           (room_id, money))
+            cursor.execute("SELECT * FROM Rooms WHERE room_id = ? AND status = 0",
+                           (room_id,))
             room = cursor.fetchone()
             if not room:
-                return "Не хватает денег на аренду комнаты или комната занята!"
+                return "Комната занята!"
 
             cursor.execute(
                 "SELECT check_in_date, check_out_date FROM Bookings WHERE room_id = ? AND (check_in_date <= ? "
@@ -253,10 +252,15 @@ class Rooms:
             dates = cursor.fetchone()
             if dates:
                 return f"Комната занята в указанные даты {dates[0]} - {dates[1]}."
-                
+
+            total_price = int(cursor.execute("SELECT price_day FROM Rooms WHERE room_id = ?",
+                                         (room_id,)).fetchone()[0] * (datetime.datetime.strptime(check_out_date,
+                                                                                                 '%Y-%m-%d') -
+                                                                      datetime.datetime.strptime(check_in_date,
+                                                                                                 '%Y-%m-%d')).days)
             cursor.execute(
-                "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?)",
-                (guest_id, room_id, check_in_date, check_out_date))
+                "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date, total_price) VALUES "
+                "(?, ?, ?, ?, ?)", (guest_id, room_id, check_in_date, check_out_date, total_price))
             cursor.execute("UPDATE Rooms SET status = 1 WHERE room_id = ?", (room_id,))
             conn.commit()
             return "Комната успешно забронирована."
@@ -272,7 +276,7 @@ class Rooms:
             cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1",
                            (room_id,))
             cleaning_status = cursor.fetchone()
-            if cleaning_status and cleaning_status[0] == 1:
+            if cleaning_status and cleaning_status[0] == 0:
                 cursor.execute("UPDATE Rooms SET status = 0 WHERE room_id = ?", (room_id,))
                 conn.commit()
                 return "Комната успешно сдана."
@@ -356,15 +360,22 @@ class Services:
     def check_service(guest_id: int,
                       service_id: int,
                       quantity: int) -> str:
-        guest = Guests.get_guest(guest_id)
-        if isinstance(guest, str):
-            return guest
-            
-        service = Services.get_service(service_id)
-        if isinstance(service, str):
-            return service
-            
-        total_price = service[2] * quantity
+        with connect_db() as conn:
+            guest = Guests.get_guest(guest_id)
+            if isinstance(guest, str):
+                return guest
+
+            service = Services.get_service(service_id)
+            if isinstance(service, str):
+                return service
+
+            total_price = service[3] * quantity
+            order_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO GuestServices (guest_id, service_id, order_date, quantity, price)"
+                           "VALUES (?, ?, ?, ?, ?)", (guest_id, service_id, order_date, quantity, total_price))
+            conn.commit()
+
         return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги {service[1]}. Общая стоимость: {total_price}."
 
 
