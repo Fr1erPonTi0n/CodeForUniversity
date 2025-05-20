@@ -1,271 +1,405 @@
-from dbwork import *
+import re
+import sqlite3
+import datetime
 
 
-def guests_menu():
-    guests_var = int(input("""Выберите нужный пункт для работы с гостями:
-        1) Регистрация гостя (имя, фамилия, телефон, паспортный номер, фамилия, предпочтения)
-        2) Узнать гостя по его id
-        3) Получить список всех гостей
-        4) Удалить с базы данных гостя\n>\t"""))
-
-    headers = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
-
-    if guests_var == 1:
-        print(Guests.reg_guests(
-            name=input('Введите имя:\t'),
-            surname=input('Введите фамилию:\t'),
-            patronymic=input('Введите отчество:\t'),
-            phone=int(input('Введите номер:\t')),
-            passport_num=input('Введите паспортный номер:\t'),
-            preferences=input('Введите пожелание гостя, если надо:\t')
-        ))
-    elif guests_var == 2:
-        guest = Guests.get_guest(int(input('Введите ID гостя:\t')))
-        if guest:
-            print("\t|\t".join(headers))
-            print("\t|\t".join(str(x) for x in guest))
-        else:
-            print("Гость с таким ID не найден")
-    elif guests_var == 3:
-        print("\t|\t".join(headers))
-        for g in Guests.get_guests():
-            print("\t|\t".join(str(x) for x in g))
-    elif guests_var == 4:
-        print(Guests.delete_guests(guest_id=int(input('Введите ID гостя:\t'))))
-    else:
-        print("Неверный выбор пункта меню")
+def connect_db():
+    return sqlite3.connect("base.db")
 
 
-def workers_menu():
-    workers_var = int(input("""Выберите нужный пункт для работы с работниками: 
-    1) Регистрация работника (имя, фамилия, телефон, паспортный номер, день рождения, должность, оклад, место жительства, гражданство, фамилия, график работы) 
-    2) Узнать работника по его id 
-    3) Получить список всех работников
-    4) Удалить с базы данных работника 
-    5) Узнать чем занят работник 
-    6) Назначить работнику уборку 
-    7) Прекратить уборку работника\n>\t"""))
+class Guests:
+    @staticmethod
+    def reg_guests(name: str,
+                   surname: str,
+                   phone: int,
+                   passport_num: str,
+                   patronymic: str = None,
+                   preferences: str = None) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT * FROM Guests WHERE name = ? AND surname = ? AND (patronymic = ? OR 
+            (patronymic IS NULL AND ? IS NULL)) AND phone = ? AND passport_num = ?""", (name, surname,
+                                                                                        patronymic, patronymic, phone,
+                                                                                        passport_num))
+            existing_guest = cursor.fetchone()
 
-    headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Гражданство", "Паспорт", "День рождения", "Должность", "Номер "
-                                                                                                             "телефона",
-                 "Оклад", "График работы", "Отработаные часы", "Место жительства"]
-    headers_2 = ["ID", "ID Комнаты", "ID Работника", "Дата уборки", "Статус уборки"]
+            if existing_guest:
+                return "Гость уже был зарегистрирован!"
+            reg_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            cursor.execute("""
+                        INSERT INTO Guests (name, surname, patronymic, phone, passport_num, reg_date, preferences)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, (name, surname, patronymic, phone, passport_num, reg_date, preferences))
+            conn.commit()
+        return "Гость успешно зарегистрирован!"
 
-    if workers_var == 1:
-        print(Workers.reg_worker(name=input('Введите имя:\t'),
-                                 surname=input('Введите фамилию:\t'),
-                                 patronymic=input('Введите отчество:\t'),
-                                 phone=int(input('Введите телефона:\t')),
-                                 passport_num=input('Введите паспортный номер:\t'),
-                                 date_birth=input('Введите день рождение (ГГГГ-ММ-ДД):\t'),
-                                 position=input('Введите должность:\t'),
-                                 salary=int(input('Введите оклад:\t')),
-                                 place_residence=input('Введите место жительства:\t'),
-                                 citizenship=input('Введите гражданство:\t'),
-                                 work_schedule=input('Введите график работы:\t')
-                                 ))
+    @staticmethod
+    def get_guest(guest_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Guests WHERE guest_id = ?", (guest_id,))
+            guest = cursor.fetchone()
+        return guest if guest else "Гость не найден!"
 
-    elif workers_var == 2:
-        worker = Workers.get_worker(int(input('Введите ID гостя:\t')))
-        if worker:
-            print("\t|\t".join(headers_1))
-            print("\t|\t".join(str(x) for x in worker))
-        else:
-            print("Работник с таким ID не найден")
-    elif workers_var == 3:
-        print("\t|\t".join(headers_1))
-        for w in Workers.get_workers():
-            print("\t|\t".join(str(x) for x in w))
-    elif workers_var == 4:
-        print(Workers.delete_worker(worker_id=int(input('Введите ID работника:\t'))))
-    elif workers_var == 5:
-        worker = Workers.worker_cleaning(int(input('Введите ID гостя:\t')))
-        if isinstance(worker, list):
-            print("\t|\t".join(headers_2))
-            print("\t|\t".join(str(x) for x in worker))
-        else:
-            print("Уборка/и работника с таким ID не найден/ы")
-    elif workers_var == 6:
-        print(Workers.start_cleaning(worker_id=int(input('Введите ID работника:\t')),
-                                     room_id=int(input('Введите ID комнаты:\t')),
-                                     cleaning_date=input('Введите дату уборки:\t')))
-    elif workers_var == 7:
-        print(Workers.end_cleaning(worker_id=int(input('Введите ID работника:\t')),
-                                   room_id=int(input('Введите ID комнаты::\t'))))
-    else:
-        print("Неверный выбор пункта меню")
+    @staticmethod
+    def get_guests() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Guests")
+            guests = cursor.fetchall()
+        return guests
+
+    @staticmethod
+    def delete_guests(guest_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Guests WHERE guest_id = ?", (guest_id,))
+            conn.commit()
+        return "Гость успешно удалён!" if cursor.rowcount > 0 else "Гость не найден!"
 
 
-def rooms_menu():
-    rooms_var = int(input("""Выберите нужный пункт для работы с гостями:
-        1) Регистрация комнаты (номер комнаты, тип комнаты, стоимость комнаты за один день)
-        2) Удаления комнаты по id
-        3) Получение информации о комнате по id
-        4) Получение информации о всех комнат
-        5) Аренда комнаты (id гостя, со сколько по скольки, деньги, id комнаты)
-        6) Сдача комнаты после аренды (id комнаты)
-        7) Проверка комнаты по id комнаты
-        8) Проверка всех комнат\n>\t"""))
+class Workers:
+    @staticmethod
+    def reg_worker(name: str,
+                   surname: str,
+                   phone: int,
+                   passport_num: str,
+                   date_birth: str,
+                   position: str,
+                   salary: int,
+                   place_residence: str,
+                   citizenship: str,
+                   patronymic: str = None,
+                   work_schedule: str = None) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT * FROM Workers WHERE name = ? AND surname = ? AND (patronymic = ? OR (? IS NULL 
+            AND patronymic IS NULL)) AND phone = ? AND passport_num = ? AND date_birth = ? AND position = ? 
+            AND salary = ? AND place_residence = ? AND (work_schedule = ? OR (? IS NULL AND work_schedule IS NULL))""",
+                           (name, surname, patronymic, patronymic, phone, passport_num, date_birth, position,
+                            salary, place_residence, work_schedule, work_schedule))
+            existing_worker = cursor.fetchone()
+            if existing_worker:
+                return "Работник уже был зарегистрирован!"
 
-    headers_1 = ['ID', 'Номер комнаты', 'Тип комнаты', 'Стоимость в 1 день', 'Статус']
+            hire_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            cursor.execute("""INSERT INTO Workers (name, surname, patronymic, phone, passport_num, date_birth, position, 
+                              salary, place_residence, citizenship, hire_date, work_schedule)
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (
+                name, surname, patronymic, phone, passport_num, date_birth, position,
+                salary, place_residence, citizenship, hire_date, work_schedule))
+            conn.commit()
+        return "Работник успешно зарегистрирован!"
 
-    if rooms_var == 1:
-        print(Rooms.add_room(room_num=int(input('Введите номер комнаты:\t')),
-                             room_type=input('Введите тип комнаты:\t'),
-                             price_day=int(input('Введите стоимость комнаты за один день:\t'))
-                             ))
-    elif rooms_var == 2:
-        print(Rooms.delete_room(room_id=int(input('Введите ID комнаты:\t'))))
-    elif rooms_var == 3:
-        room = Rooms.get_room(int(input('Введите ID комнаты:\t')))
-        if isinstance(room, list):
-            print("\t|\t".join(headers_1))
-            print("\t|\t".join(str(x) for x in room))
-        else:
-            print("Комната с таким ID не найдена")
-    elif rooms_var == 4:
-        rooms = Rooms.get_rooms()
-        if rooms:
-            print("\t|\t".join(headers_1))
-            for room in rooms:
-                print("\t|\t".join(str(x) for x in room))
-        else:
-            print("Нет зарегистрированных комнат")
-    elif rooms_var == 5:
-        print(Rooms.reservation_room(
-            guest_id=int(input('Введите ID гостя:\t')),
-            check_out_date=input('Введите дату выезда (ГГГГ-ММ-ДД):\t'),
-            check_in_date=input('Введите дату заезда (ГГГГ-ММ-ДД):\t'),
-            money=int(input('Введите бюджет:\t')),
-            room_id=int(input('Введите ID комнаты (или 0 для автоматического выбора):\t')) or None))
-    elif rooms_var == 6:
-        print(Rooms.rental_room(room_id=int(input('Введите ID комнаты:\t'))))
-    elif rooms_var == 7:
-        result = Rooms.check_room(guest_id=int(input('Введите ID гостя:\t')))
-        if isinstance(result, dict):
-            for room_id, status in result.items():
-                print(f"Комната {room_id}: {'Занята' if status else 'Свободна'}")
-        else:
-            print(result)
-    elif rooms_var == 8:
-        print(Rooms.check_rooms())
-    else:
-        print("Неверный выбор пункта меню")
+    @staticmethod
+    def get_worker(worker_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Workers WHERE worker_id = ?", (worker_id,))
+            worker = cursor.fetchone()
+        return worker if worker else "Работник не найден!"
 
+    @staticmethod
+    def get_workers() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Workers")
+            workers = cursor.fetchall()
+        return workers
 
-def services_menu():
-    service_var = int(input("""Выберите нужный пункт для работы с услугами:
-        1) Добавить услугу (название, цена, описание)
-        2) Получить информацию об услуге по ID
-        3) Получить список всех услуг
-        4) Удалить услугу
-        5) Заказать услугу для гостя\n>\t"""))
+    @staticmethod
+    def delete_worker(worker_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Guests WHERE guest_id = ?", (worker_id,))
+            conn.commit()
+        return "Работник успешно удалён!" if cursor.rowcount > 0 else "Работник не найден!"
 
-    headers = ['ID услуги', 'Название', 'Цена', 'Описание']
+    @staticmethod
+    def worker_cleaning(worker_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cleans = cursor.execute("SELECT * FROM Cleanings WHERE worker_id = ?", (worker_id, )).fetchall()
+        return cleans
 
-    if service_var == 1:
-        print(Services.add_service(name=input('Введите название услуги:\t'),
-                                   price=int(input('Введите цену услуги:\t')),
-                                   description=input('Введите описание услуги (необязательно):\t') or None
-                                   ))
-    elif service_var == 2:
-        service = Services.get_service(int(input('Введите ID услуги:\t')))
-        if isinstance(service, list):
-            print("\t|\t".join(headers))
-            print("\t|\t".join(str(x) for x in service))
-        else:
-            print('Услуга не найдена!')
-    elif service_var == 3:
-        services = Services.get_services()
-        if services:
-            print("\t|\t".join(headers))
-            for service in services:
-                print("\t|\t".join(str(x) for x in service))
-        else:
-            print("Нет доступных услуг")
-    elif service_var == 4:
-        print(Services.delete_service(
-            service_id=int(input('Введите ID услуги для удаления:\t'))
-        ))
-    elif service_var == 5:
-        print(Services.check_service(
-            guest_id=int(input('Введите ID гостя:\t')),
-            service_id=int(input('Введите ID услуги:\t')),
-            quantity=int(input('Введите количество:\t'))
-        ))
-    else:
-        print("Неверный выбор пункта меню")
+    @staticmethod
+    def start_cleaning(worker_id: int, 
+                       room_id: int,
+                       cleaning_date: str) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
 
+            cursor.execute("SELECT COUNT(*) FROM Workers WHERE worker_id = ?", (worker_id,))
+            worker_exists = cursor.fetchone()[0] > 0
 
-def other_menu():
-    other_var = int(input("""Выберите нужный пункт для работы с гостями:
-            1)Выборка данных (LIKE)
-            2)Выборка данных (BETWEEN)
-            3)Выборка данных (Вложенный запрос)
-            4)Выборка данных (JOIN)\n>\t"""))
+            cursor.execute("SELECT COUNT(*) FROM Rooms WHERE room_id = ?", (room_id,))
+            room_exists = cursor.fetchone()[0] > 0
 
-    headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
-    headers_2 = ['ID', 'Номер комнаты', 'Тип комнаты', 'Стоимость в 1 день', 'Статус']
-    headers_3 = ['ID', 'ID Гостя', 'ID Комнаты', 'Когда будет жить', 'Когда уйдёт', 'Статус', 'Сколько вышло денег']
-    headers_4 = ['Имя', 'Фамилия', 'Номер комнаты', 'Когда будет жить', 'Когда уйдёт']
+            if not worker_exists:
+                return f"Работник с ID {worker_id} не найден."
+            if not room_exists:
+                return f"Комната с ID {room_id} не найдена."
+            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", cleaning_date):
+                return "Неправильно введена дата: гггг-мм-дд."
 
-    if other_var == 1:
-        output = Other.data_selection_like(pattern=input('Введите патерн для выборки дат регистрации гостей:\t'))
-        if output:
-            print("\t|\t".join(headers_1))
-            for elem in output:
-                print("\t|\t".join(str(x) for x in elem))
-        else:
-            print('Ничего не найдено!')
-    elif other_var == 2:
-        output = Other.data_selection_between(start_price=int(input('Введите ваш бюджет от, для комнаты:\t')),
-                                              end_price=int(input('Введите ваш бюджет до, для комнаты:\t')))
-        if output:
-            print("\t|\t".join(headers_2))
-            for elem in output:
-                print("\t|\t".join(str(x) for x in elem))
-        else:
-            print('Ничего не найдено!')
-    elif other_var == 3:
-        output = Other.data_selection_nested_query(guest_id=int(input('Введите ID гостя:\t')))
-        if output:
-            print("\t|\t".join(headers_3))
-            for elem in output:
-                print("\t|\t".join(str(x) for x in elem))
-        else:
-            print('Ничего не найдено!')
-    elif other_var == 4:
-        output = Other.data_selection_join(guest_id=int(input('Введите ID гостя:\t')))
-        if output:
-            print("\t|\t".join(headers_4))
-            for elem in output:
-                print("\t|\t".join(str(x) for x in elem))
-        else:
-            print('Ничего не найдено!')
-    else:
-        print("Неверный выбор пункта меню")
+            cursor.execute(
+                "INSERT INTO Cleanings (room_id, worker_id, cleaning_date, status) VALUES (?, ?, ?, ?)",
+                (room_id, worker_id, cleaning_date, 0)
+            )
+            conn.commit()
+
+            return f"Уборка для комнаты {room_id} начата работником {worker_id} в {cleaning_date}."
+
+    @staticmethod
+    def end_cleaning(worker_id: int, 
+                     room_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT COUNT(*) FROM Workers WHERE worker_id = ?", (worker_id,))
+            worker_exists = cursor.fetchone()[0] > 0
+
+            cursor.execute("SELECT COUNT(*) FROM Rooms WHERE room_id = ?", (room_id,))
+            room_exists = cursor.fetchone()[0] > 0
+
+            if not worker_exists:
+                return f"Работник с ID {worker_id} не найден."
+            if not room_exists:
+                return f"Комната с ID {room_id} не найдена."
+
+            cursor.execute(
+                "UPDATE Cleanings SET status = ? WHERE worker_id = ? AND room_id = ? AND status = ?",
+                (1, worker_id, room_id, 0)
+            )
+            conn.commit()
+
+            if cursor.rowcount == 0:
+                return f"Активная уборка для комнаты {room_id} работником {worker_id} не найдена."
+
+            return f"Уборка для комнаты {room_id} завершена работником {worker_id}."
 
 
-if __name__ == '__main__':
-    while True:
-        var = int(input("""Выберите нужный пункт для управления меню гостиницы "Уют":
-        1) Гости
-        2) Рабочие
-        3) Комнаты
-        4) Услуги
-        5) Другое (Запросы SQL)
-        6) Выход\n>\t"""))
-        if var == 1:
-            guests_menu()
-        elif var == 2:
-            workers_menu()
-        elif var == 3:
-            rooms_menu()
-        elif var == 4:
-            services_menu()
-        elif var == 5:
-            other_menu()
-        elif var == 6:
-            break
-        else:
-            print("Неверный выбор пункта меню")
+class Rooms:
+    @staticmethod
+    def add_room(room_num: int,
+                 room_type: str,
+                 price_day: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT * FROM Rooms WHERE room_num = ?))""", (room_num,))
+            existing_worker = cursor.fetchone()
+            if existing_worker:
+                return "Комната уже была зарегистрирована!"
+            cursor.execute("""INSERT INTO Rooms (room_num, room_type, price_day) 
+                                VALUES (?, ?, ?)""", (room_num, room_type, price_day))
+            conn.commit()
+        return "Комната успешно зарегистрирована!"
+
+    @staticmethod
+    def delete_room(room_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Guests WHERE room_id = ?", (room_id,))
+            conn.commit()
+        return "Комната успешно удалена!" if cursor.rowcount > 0 else "Комната не найдена!"
+
+    @staticmethod
+    def get_room(room_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Guests WHERE room_id = ?", (room_id,))
+            room = cursor.fetchone()
+        return room if room else "Комната не найдена!"
+
+    @staticmethod
+    def get_rooms() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Rooms")
+            rooms = cursor.fetchall()
+        return rooms
+
+    @staticmethod
+    def reservation_room(guest_id: int,
+                         check_out_date: str,
+                         check_in_date: str,
+                         money: int,
+                         room_id: int = None) -> str:
+        if Guests.get_guest(guest_id) is list and Rooms.get_room(room_id) is list:
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                if room_id is None:
+                    cursor.execute("SELECT room_id FROM Rooms WHERE price_day <= ? AND status = 0", (money,))
+                    available_rooms = cursor.fetchall()
+                    if available_rooms:
+                        room_id = available_rooms[0][0]
+                    else:
+                        return "Нет доступных комнат по вашему бюджету."
+                cursor.execute("SELECT * FROM Rooms WHERE room_id = ? AND price_day <= ? AND status = 0",
+                               (room_id, money))
+                if cursor:
+                    return "Не хватает денег на аренду комнаты или комната занята!"
+
+                cursor.execute(
+                    "SELECT check_in_date, check_out_date FROM Bookings WHERE room_id = ? AND (check_in_date <= ? "
+                    "AND check_out_date >= ?)",
+                    (room_id, check_in_date, check_in_date))
+
+                dates = cursor.fetchone()
+                if dates:
+                    return f"Комната занята в указанные даты {dates[0]} - {dates[1]}."
+                cursor.execute(
+                    "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?)",
+                    (guest_id, room_id, check_in_date, check_out_date))
+                conn.commit()
+                return "Комната успешно забронирована."
+        return "Комната или гость нету в базе данных!"
+
+    @staticmethod
+    def rental_room(room_id: int) -> str:
+        if Rooms.get_room(room_id) is list:
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1",
+                               (room_id,))
+                cleaning_status = cursor.fetchone()
+                if cleaning_status and cleaning_status[0] == 1:
+                    cursor.execute("UPDATE Rooms SET status = 0 WHERE room_id = ?", (room_id,))
+                    conn.commit()
+                    return "Комната успешно сдана."
+                return "Комната не может быть сдана, так как она в процессе уборки."
+        return "Комнаты нету в базе данных!"
+
+    @staticmethod
+    def check_room(guest_id: int) -> dict or str:
+        if Guests.get_guest(guest_id) is list:
+            with connect_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT room_id, status FROM Bookings WHERE guest_id = ?", (guest_id,))
+                bookings = cursor.fetchall()
+                return {room_id: status for room_id, status in bookings}
+        return "Гостя нету в базе данных!"
+
+    @staticmethod
+    def check_rooms() -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                        UPDATE Rooms
+                        SET status = (
+                            CASE 
+                                WHEN MAX(Cleanings.status) = 1 THEN 1
+                                WHEN MAX(Bookings.status) = 1 THEN 1
+                                ELSE 0
+                            END
+                        )
+                        FROM Rooms
+                        LEFT JOIN Cleanings ON Rooms.room_id = Cleanings.room_id
+                        LEFT JOIN Bookings ON Rooms.room_id = Bookings.room_id
+                        GROUP BY Rooms.room_id
+                    """)
+
+            conn.commit()
+
+            return "Успешно обновлены статусы комнат."
+
+
+class Services:
+    @staticmethod
+    def add_service(name: str,
+                    price: int,
+                    description: str = None) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT * FROM Services WHERE name = ? AND price = ? AND description = ?))""",
+                           (name, price, description))
+            existing_worker = cursor.fetchone()
+            if existing_worker:
+                return "Услуга уже была зарегистрирована!"
+            cursor.execute("""INSERT INTO Services (name, price, description) 
+                                VALUES (?, ?, ?)""", (name, price, description))
+            conn.commit()
+        return "Услуга успешно зарегистрирована!"
+
+    @staticmethod
+    def delete_service(service_id: int) -> str:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM Guests WHERE service_id = ?", (service_id,))
+            conn.commit()
+        return "Услуга успешно удалена!" if cursor.rowcount > 0 else "Услуга не найдена!"
+
+    @staticmethod
+    def get_services() -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Rooms")
+            services = cursor.fetchall()
+        return services
+
+    @staticmethod
+    def get_service(service_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Services WHERE service_id = ?", (service_id,))
+            service = cursor.fetchone()
+        return service if service else "Услуга не найдена!"
+
+    @staticmethod
+    def check_service(guest_id: int,
+                      service_id: int,
+                      quantity: int) -> str:
+        if Guests.get_guest(guest_id) is list and Services.get_service(service_id):
+            with connect_db() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute("SELECT * FROM Guests WHERE guest_id = ?", (guest_id,))
+                guest = cursor.fetchone()
+
+                cursor.execute("SELECT * FROM Services WHERE service_id = ?", (service_id,))
+                service = cursor.fetchone()
+
+                total_price = service[3] * quantity
+                return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги {service[1]}. Общая стоимость: " \
+                       f"{total_price}."
+        return "Гость или услуги не были найдены!"
+
+
+class Other:
+    @staticmethod
+    def data_selection_like(pattern: str) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Guests WHERE reg_date LIKE ?", (pattern,))
+            return cursor.fetchall()
+
+    @staticmethod
+    def data_selection_between(start_price: int, end_price: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM Rooms WHERE price_day BETWEEN ? AND ?", (start_price, end_price))
+            return cursor.fetchall()
+
+    @staticmethod
+    def data_selection_nested_query(guest_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                    SELECT * FROM Bookings
+                    WHERE guest_id = (SELECT guest_id FROM Guests WHERE guest_id = ?)
+                    """, (guest_id,))
+            return cursor.fetchall()
+
+    @staticmethod
+    def data_selection_join(guest_id: int) -> list:
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT Guests.name, Guests.surname, Rooms.room_num, Bookings.check_in_date, Bookings.check_out_date
+                FROM Bookings
+                JOIN Guests ON Bookings.guest_id = Guests.guest_id
+                JOIN Rooms ON Bookings.room_id = Rooms.room_id
+                WHERE Guests.guest_id = ?
+            """, (guest_id,))
+            return cursor.fetchall()
