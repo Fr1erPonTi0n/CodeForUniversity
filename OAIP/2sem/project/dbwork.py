@@ -111,7 +111,7 @@ class Workers:
     def delete_worker(worker_id: int) -> str:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM Guests WHERE guest_id = ?", (worker_id,))
+            cursor.execute("DELETE FROM Workers WHERE worker_id = ?", (worker_id,))
             conn.commit()
         return "Работник успешно удалён!" if cursor.rowcount > 0 else "Работник не найден!"
 
@@ -139,7 +139,7 @@ class Workers:
                 return f"Работник с ID {worker_id} не найден."
             if not room_exists:
                 return f"Комната с ID {room_id} не найдена."
-            if re.fullmatch(r"\d{4}-\d{2}-\d{2}", cleaning_date):
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", cleaning_date):
                 return "Неправильно введена дата: гггг-мм-дд."
 
             cursor.execute(
@@ -186,9 +186,9 @@ class Rooms:
                  price_day: int) -> str:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("""SELECT * FROM Rooms WHERE room_num = ?))""", (room_num,))
-            existing_worker = cursor.fetchone()
-            if existing_worker:
+            cursor.execute("SELECT * FROM Rooms WHERE room_num = ?", (room_num,))
+            existing_room = cursor.fetchone()
+            if existing_room:
                 return "Комната уже была зарегистрирована!"
             cursor.execute("""INSERT INTO Rooms (room_num, room_type, price_day) 
                                 VALUES (?, ?, ?)""", (room_num, room_type, price_day))
@@ -199,7 +199,7 @@ class Rooms:
     def delete_room(room_id: int) -> str:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM Guests WHERE room_id = ?", (room_id,))
+            cursor.execute("DELETE FROM Rooms WHERE room_id = ?", (room_id,))
             conn.commit()
         return "Комната успешно удалена!" if cursor.rowcount > 0 else "Комната не найдена!"
 
@@ -207,7 +207,7 @@ class Rooms:
     def get_room(room_id: int) -> list:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Guests WHERE room_id = ?", (room_id,))
+            cursor.execute("SELECT * FROM Rooms WHERE room_id = ?", (room_id,))
             room = cursor.fetchone()
         return room if room else "Комната не найдена!"
 
@@ -225,60 +225,70 @@ class Rooms:
                          check_in_date: str,
                          money: int,
                          room_id: int = None) -> str:
-        if Guests.get_guest(guest_id) is list and Rooms.get_room(room_id) is list:
-            with connect_db() as conn:
-                cursor = conn.cursor()
-                if room_id is None:
-                    cursor.execute("SELECT room_id FROM Rooms WHERE price_day <= ? AND status = 0", (money,))
-                    available_rooms = cursor.fetchall()
-                    if available_rooms:
-                        room_id = available_rooms[0][0]
-                    else:
-                        return "Нет доступных комнат по вашему бюджету."
-                cursor.execute("SELECT * FROM Rooms WHERE room_id = ? AND price_day <= ? AND status = 0",
-                               (room_id, money))
-                if cursor:
-                    return "Не хватает денег на аренду комнаты или комната занята!"
+        guest = Guests.get_guest(guest_id)
+        if isinstance(guest, str):
+            return "Гость не найден!"
+            
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            if room_id is None:
+                cursor.execute("SELECT room_id FROM Rooms WHERE price_day <= ? AND status = 0", (money,))
+                available_rooms = cursor.fetchall()
+                if available_rooms:
+                    room_id = available_rooms[0][0]
+                else:
+                    return "Нет доступных комнат по вашему бюджету."
+            
+            cursor.execute("SELECT * FROM Rooms WHERE room_id = ? AND price_day <= ? AND status = 0",
+                           (room_id, money))
+            room = cursor.fetchone()
+            if not room:
+                return "Не хватает денег на аренду комнаты или комната занята!"
 
-                cursor.execute(
-                    "SELECT check_in_date, check_out_date FROM Bookings WHERE room_id = ? AND (check_in_date <= ? "
-                    "AND check_out_date >= ?)",
-                    (room_id, check_in_date, check_in_date))
+            cursor.execute(
+                "SELECT check_in_date, check_out_date FROM Bookings WHERE room_id = ? AND (check_in_date <= ? "
+                "AND check_out_date >= ?)",
+                (room_id, check_out_date, check_in_date))
 
-                dates = cursor.fetchone()
-                if dates:
-                    return f"Комната занята в указанные даты {dates[0]} - {dates[1]}."
-                cursor.execute(
-                    "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?)",
-                    (guest_id, room_id, check_in_date, check_out_date))
-                conn.commit()
-                return "Комната успешно забронирована."
-        return "Комната или гость нету в базе данных!"
+            dates = cursor.fetchone()
+            if dates:
+                return f"Комната занята в указанные даты {dates[0]} - {dates[1]}."
+                
+            cursor.execute(
+                "INSERT INTO Bookings (guest_id, room_id, check_in_date, check_out_date) VALUES (?, ?, ?, ?)",
+                (guest_id, room_id, check_in_date, check_out_date))
+            cursor.execute("UPDATE Rooms SET status = 1 WHERE room_id = ?", (room_id,))
+            conn.commit()
+            return "Комната успешно забронирована."
 
     @staticmethod
     def rental_room(room_id: int) -> str:
-        if Rooms.get_room(room_id) is list:
-            with connect_db() as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1",
-                               (room_id,))
-                cleaning_status = cursor.fetchone()
-                if cleaning_status and cleaning_status[0] == 1:
-                    cursor.execute("UPDATE Rooms SET status = 0 WHERE room_id = ?", (room_id,))
-                    conn.commit()
-                    return "Комната успешно сдана."
-                return "Комната не может быть сдана, так как она в процессе уборки."
-        return "Комнаты нету в базе данных!"
+        room = Rooms.get_room(room_id)
+        if isinstance(room, str):
+            return room
+            
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT status FROM Cleanings WHERE room_id = ? ORDER BY cleaning_date DESC LIMIT 1",
+                           (room_id,))
+            cleaning_status = cursor.fetchone()
+            if cleaning_status and cleaning_status[0] == 1:
+                cursor.execute("UPDATE Rooms SET status = 0 WHERE room_id = ?", (room_id,))
+                conn.commit()
+                return "Комната успешно сдана."
+            return "Комната не может быть сдана, так как она в процессе уборки."
 
     @staticmethod
     def check_room(guest_id: int) -> dict or str:
-        if Guests.get_guest(guest_id) is list:
-            with connect_db() as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT room_id, status FROM Bookings WHERE guest_id = ?", (guest_id,))
-                bookings = cursor.fetchall()
-                return {room_id: status for room_id, status in bookings}
-        return "Гостя нету в базе данных!"
+        guest = Guests.get_guest(guest_id)
+        if isinstance(guest, str):
+            return guest
+            
+        with connect_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT room_id, status FROM Bookings WHERE guest_id = ?", (guest_id,))
+            bookings = cursor.fetchall()
+            return {room_id: status for room_id, status in bookings}
 
     @staticmethod
     def check_rooms() -> str:
@@ -289,15 +299,11 @@ class Rooms:
                         UPDATE Rooms
                         SET status = (
                             CASE 
-                                WHEN MAX(Cleanings.status) = 1 THEN 1
-                                WHEN MAX(Bookings.status) = 1 THEN 1
+                                WHEN room_id IN (SELECT room_id FROM Bookings WHERE status = 1) THEN 1
+                                WHEN room_id IN (SELECT room_id FROM Cleanings WHERE status = 0) THEN 1
                                 ELSE 0
                             END
                         )
-                        FROM Rooms
-                        LEFT JOIN Cleanings ON Rooms.room_id = Cleanings.room_id
-                        LEFT JOIN Bookings ON Rooms.room_id = Bookings.room_id
-                        GROUP BY Rooms.room_id
                     """)
 
             conn.commit()
@@ -312,10 +318,10 @@ class Services:
                     description: str = None) -> str:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("""SELECT * FROM Services WHERE name = ? AND price = ? AND description = ?))""",
+            cursor.execute("SELECT * FROM Services WHERE name = ? AND price = ? AND description = ?",
                            (name, price, description))
-            existing_worker = cursor.fetchone()
-            if existing_worker:
+            existing_service = cursor.fetchone()
+            if existing_service:
                 return "Услуга уже была зарегистрирована!"
             cursor.execute("""INSERT INTO Services (name, price, description) 
                                 VALUES (?, ?, ?)""", (name, price, description))
@@ -326,7 +332,7 @@ class Services:
     def delete_service(service_id: int) -> str:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM Guests WHERE service_id = ?", (service_id,))
+            cursor.execute("DELETE FROM Services WHERE service_id = ?", (service_id,))
             conn.commit()
         return "Услуга успешно удалена!" if cursor.rowcount > 0 else "Услуга не найдена!"
 
@@ -334,7 +340,7 @@ class Services:
     def get_services() -> list:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Rooms")
+            cursor.execute("SELECT * FROM Services")
             services = cursor.fetchall()
         return services
 
@@ -350,20 +356,16 @@ class Services:
     def check_service(guest_id: int,
                       service_id: int,
                       quantity: int) -> str:
-        if Guests.get_guest(guest_id) is list and Services.get_service(service_id):
-            with connect_db() as conn:
-                cursor = conn.cursor()
-
-                cursor.execute("SELECT * FROM Guests WHERE guest_id = ?", (guest_id,))
-                guest = cursor.fetchone()
-
-                cursor.execute("SELECT * FROM Services WHERE service_id = ?", (service_id,))
-                service = cursor.fetchone()
-
-                total_price = service[3] * quantity
-                return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги {service[1]}. Общая стоимость: " \
-                       f"{total_price}."
-        return "Гость или услуги не были найдены!"
+        guest = Guests.get_guest(guest_id)
+        if isinstance(guest, str):
+            return guest
+            
+        service = Services.get_service(service_id)
+        if isinstance(service, str):
+            return service
+            
+        total_price = service[2] * quantity
+        return f"Гость {guest[1]} {guest[2]} заказал {quantity} услуги {service[1]}. Общая стоимость: {total_price}."
 
 
 class Other:
@@ -371,7 +373,7 @@ class Other:
     def data_selection_like(pattern: str) -> list:
         with connect_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM Guests WHERE reg_date LIKE ?", (pattern,))
+            cursor.execute("SELECT * FROM Guests WHERE reg_date LIKE ?", (f"%{pattern}%",))
             return cursor.fetchall()
 
     @staticmethod
