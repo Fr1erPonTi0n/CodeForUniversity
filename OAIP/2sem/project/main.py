@@ -21,7 +21,7 @@ def guests_menu():
         ))
     elif guests_var == 2:
         guest = Guests.get_guest(int(input('Введите ID гостя:\t')))
-        if isinstance(guest, str):
+        if guest:
             print("\t|\t".join(headers))
             print("\t|\t".join(str(x) for x in guest))
         else:
@@ -37,10 +37,14 @@ def guests_menu():
 
 
 def workers_menu():
-    workers_var = int(input("""Выберите нужный пункт для работы с работниками: 1) Регистрация работника (имя, 
-    фамилия, телефон, паспортный номер, день рождения, должность, оклад, место жительства, гражданство, фамилия, 
-    график работы) 2) Узнать работника по его id 3) Получить список всех работников 4) Удалить с базы данных 
-    работника 5) Узнать чем занят работник 6) Назначить работнику уборку 7) Прекратить уборку работника\n>\t"""))
+    workers_var = int(input("""Выберите нужный пункт для работы с работниками: 
+    1) Регистрация работника (имя, фамилия, телефон, паспортный номер, день рождения, должность, оклад, место жительства, гражданство, фамилия, график работы) 
+    2) Узнать работника по его id 
+    3) Получить список всех работников
+    4) Удалить с базы данных работника 
+    5) Узнать чем занят работник 
+    6) Назначить работнику уборку 
+    7) Прекратить уборку работника\n>\t"""))
 
     headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Гражданство", "Паспорт", "День рождения", "Должность", "Номер "
                                                                                                              "телефона",
@@ -63,7 +67,7 @@ def workers_menu():
 
     elif workers_var == 2:
         worker = Workers.get_worker(int(input('Введите ID гостя:\t')))
-        if isinstance(worker, list):
+        if worker:
             print("\t|\t".join(headers_1))
             print("\t|\t".join(str(x) for x in worker))
         else:
@@ -199,14 +203,45 @@ def other_menu():
             2)Выборка данных (BETWEEN)
             3)Выборка данных (Вложенный запрос)
             4)Выборка данных (JOIN)\n>\t"""))
+
+    headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
+    headers_2 = ['ID', 'Номер комнаты', 'Тип комнаты', 'Стоимость в 1 день', 'Статус']
+    headers_3 = ['ID', 'ID Гостя', 'ID Комнаты', 'Когда будет жить', 'Когда уйдёт', 'Статус', 'Сколько вышло денег']
+    headers_4 = ['Имя', 'Фамилия', 'Номер комнаты', 'Когда будет жить', 'Когда уйдёт']
+
     if other_var == 1:
-        Other.one()
+        output = Other.data_selection_like(pattern=input('Введите патерн для выборки дат регистрации гостей:\t'))
+        if output:
+            print("\t|\t".join(headers_1))
+            for elem in output:
+                print("\t|\t".join(str(x) for x in elem))
+        else:
+            print('Ничего не найдено!')
     elif other_var == 2:
-        Other.two()
+        output = Other.data_selection_between(start_price=int(input('Введите ваш бюджет от, для комнаты:\t')),
+                                              end_price=int(input('Введите ваш бюджет до, для комнаты:\t')))
+        if output:
+            print("\t|\t".join(headers_2))
+            for elem in output:
+                print("\t|\t".join(str(x) for x in elem))
+        else:
+            print('Ничего не найдено!')
     elif other_var == 3:
-        Other.three()
+        output = Other.data_selection_nested_query(guest_id=int(input('Введите ID гостя:\t')))
+        if output:
+            print("\t|\t".join(headers_3))
+            for elem in output:
+                print("\t|\t".join(str(x) for x in elem))
+        else:
+            print('Ничего не найдено!')
     elif other_var == 4:
-        Other.four()
+        output = Other.data_selection_join(guest_id=int(input('Введите ID гостя:\t')))
+        if output:
+            print("\t|\t".join(headers_4))
+            for elem in output:
+                print("\t|\t".join(str(x) for x in elem))
+        else:
+            print('Ничего не найдено!')
     else:
         print("Неверный выбор пункта меню")
 
