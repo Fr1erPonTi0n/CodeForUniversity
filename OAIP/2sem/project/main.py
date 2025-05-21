@@ -2,6 +2,8 @@ from tabulate import tabulate
 from dbwork import *
 import sys
 
+database = BaseClass()
+
 
 def input_int(prompt):
     while True:
@@ -33,7 +35,7 @@ def guests_menu():
         headers = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
 
         if guests_var == 1:
-            print(Guests.reg_guests(
+            print(database.reg_guests(
                 name=input('Введите имя:\t'),
                 surname=input('Введите фамилию:\t'),
                 patronymic=input('Введите отчество (если есть):\t') or None,
@@ -42,13 +44,13 @@ def guests_menu():
                 preferences=input('Введите пожелание гостя (если есть):\t') or None
             ))
         elif guests_var == 2:
-            guest = Guests.get_guest(input_int('Введите ID гостя:\t'))
+            guest = database.get_guest(input_int('Введите ID гостя:\t'))
             print_table(headers, guest)
         elif guests_var == 3:
-            guests = Guests.get_guests()
+            guests = database.get_guests()
             print_table(headers, guests)
         elif guests_var == 4:
-            print(Guests.delete_guests(guest_id=input_int('Введите ID гостя:\t')))
+            print(database.delete_guests(guest_id=input_int('Введите ID гостя:\t')))
         elif guests_var == 5:
             return
         else:
@@ -74,7 +76,7 @@ def workers_menu():
         headers_2 = ["ID", "ID Комнаты", "ID Работника", "Дата уборки", "Статус уборки"]
 
         if workers_var == 1:
-            print(Workers.reg_worker(
+            print(database.reg_worker(
                 name=input('Введите имя:\t'),
                 surname=input('Введите фамилию:\t'),
                 patronymic=input('Введите отчество (если есть):\t') or None,
@@ -88,24 +90,24 @@ def workers_menu():
                 work_schedule=input('Введите график работы (если есть):\t') or None
             ))
         elif workers_var == 2:
-            worker = Workers.get_worker(input_int('Введите ID работника:\t'))
+            worker = database.get_worker(input_int('Введите ID работника:\t'))
             print_table(headers_1, worker)
         elif workers_var == 3:
-            workers = Workers.get_workers()
+            workers = database.get_workers()
             print_table(headers_1, workers)
         elif workers_var == 4:
-            print(Workers.delete_worker(worker_id=input_int('Введите ID работника:\t')))
+            print(database.delete_worker(worker_id=input_int('Введите ID работника:\t')))
         elif workers_var == 5:
-            cleans = Workers.worker_cleaning(input_int('Введите ID работника:\t'))
+            cleans = database.worker_cleaning(input_int('Введите ID работника:\t'))
             print_table(headers_2, cleans)
         elif workers_var == 6:
-            print(Workers.start_cleaning(
+            print(database.start_cleaning(
                 worker_id=input_int('Введите ID работника:\t'),
                 room_id=input_int('Введите ID комнаты:\t'),
                 cleaning_date=input('Введите дату уборки (ГГГГ-ММ-ДД):\t')
             ))
         elif workers_var == 7:
-            print(Workers.end_cleaning(
+            print(database.end_cleaning(
                 worker_id=input_int('Введите ID работника:\t'),
                 room_id=input_int('Введите ID комнаты:\t')
             ))
@@ -135,18 +137,18 @@ def rooms_menu():
         headers_2 = ['ID', 'ID Гостя', 'ID Комнаты', 'Дата заезда', 'Дата выезда', 'Статус', 'Общая цена']
 
         if rooms_var == 1:
-            print(Rooms.add_room(
+            print(database.add_room(
                 room_num=input_int('Введите номер комнаты:\t'),
                 room_type=input('Введите тип комнаты:\t'),
                 price_day=input_int('Введите стоимость комнаты за день:\t')
             ))
         elif rooms_var == 2:
-            print(Rooms.delete_room(room_id=input_int('Введите ID комнаты:\t')))
+            print(database.delete_room(room_id=input_int('Введите ID комнаты:\t')))
         elif rooms_var == 3:
-            room = Rooms.get_room(input_int('Введите ID комнаты:\t'))
+            room = database.get_room(input_int('Введите ID комнаты:\t'))
             print_table(headers_1, room)
         elif rooms_var == 4:
-            rooms = Rooms.get_rooms()
+            rooms = database.get_rooms()
             print_table(headers_1, rooms)
         elif rooms_var == 5:
             guest_id = int(input('Введите ID гостя:\t'))
@@ -156,28 +158,28 @@ def rooms_menu():
 
             if room_id == 0:
                 money = int(input('Введите бюджет:\t'))
-                print(Rooms.reservation_room(guest_id=guest_id,
+                print(database.reservation_room(guest_id=guest_id,
                                              check_in_date=check_in_date,
                                              check_out_date=check_out_date,
                                              money=money))
             else:
-                print(Rooms.reservation_room(guest_id=guest_id,
+                print(database.reservation_room(guest_id=guest_id,
                                              check_in_date=check_in_date,
                                              check_out_date=check_out_date,
                                              room_id=room_id))
         elif rooms_var == 6:
-            print(Rooms.rental_room(room_id=input_int('Введите ID комнаты:\t')))
+            print(database.rental_room(room_id=input_int('Введите ID комнаты:\t')))
         elif rooms_var == 7:
-            result = Rooms.check_room(guest_id=input_int('Введите ID гостя:\t'))
+            result = database.check_room(guest_id=input_int('Введите ID гостя:\t'))
             if isinstance(result, dict):
                 table_data = [[k, "Занята" if v else "Свободна"] for k, v in result.items()]
                 print_table(["ID Комнаты", "Статус"], table_data)
             else:
                 print(result)
         elif rooms_var == 8:
-            print(Rooms.check_rooms())
+            print(database.check_rooms())
         elif rooms_var == 9:
-            bookings = Rooms.get_bookings()
+            bookings = database.get_bookings()
             print_table(headers_2, bookings)
         elif rooms_var == 10:
             return
@@ -202,29 +204,29 @@ def services_menu():
         headers_2 = ['ID', 'ID гостя', 'ID услуги', 'Дата заказа', 'Количество', 'Общяя стоимость']
 
         if service_var == 1:
-            print(Services.add_service(
+            print(database.add_service(
                 name=input('Введите название услуги:\t'),
                 price=input_int('Введите цену услуги:\t'),
                 description=input('Введите описание услуги (необязательно):\t') or None
             ))
         elif service_var == 2:
-            service = Services.get_service(input_int('Введите ID услуги:\t'))
+            service = database.get_service(input_int('Введите ID услуги:\t'))
             print_table(headers_1, service)
         elif service_var == 3:
-            services = Services.get_services()
+            services = database.get_services()
             print_table(headers_1, services)
         elif service_var == 4:
-            print(Services.delete_service(
+            print(database.delete_service(
                 service_id=input_int('Введите ID услуги для удаления:\t')
             ))
         elif service_var == 5:
-            print(Services.check_service(
+            print(database.check_service(
                 guest_id=input_int('Введите ID гостя:\t'),
                 service_id=input_int('Введите ID услуги:\t'),
                 quantity=input_int('Введите количество:\t')
             ))
         elif service_var == 6:
-            guest_services = Services.get_guest_services()
+            guest_services = database.get_guest_services()
             print_table(headers_2, guest_services)
         elif service_var == 7:
             return
@@ -237,10 +239,10 @@ def services_menu():
 def other_menu():
     try:
         other_var = input_int("""Выберите нужный пункт для работы с данными:
-        1) Выборка данных (LIKE)
-        2) Выборка данных (BETWEEN)
-        3) Выборка данных (Вложенный запрос)
-        4) Выборка данных (JOIN)
+        1) Сортировка по регистрации дат (LIKE)
+        2) Сортировка цен на комнаты (BETWEEN)
+        3) Вывести список арендованных комнат гостем (Вложенный запрос)
+        4) Данные о госте (JOIN)
         5) Выход\n>\t""")
 
         headers_1 = ["ID", "Имя", "Фамилия", "Отчество", "Телефон", "Паспорт", "Дата", "Предпочтения"]
@@ -249,19 +251,19 @@ def other_menu():
         headers_4 = ['Имя', 'Фамилия', 'Номер комнаты', 'Дата заезда', 'Дата выезда']
 
         if other_var == 1:
-            output = Other.data_selection_like(input('Введите шаблон для дат регистрации (например 2023%):\t'))
+            output = database.data_selection_like(input('Введите шаблон для дат регистрации (например 2023%):\t'))
             print_table(headers_1, output)
         elif other_var == 2:
-            output = Other.data_selection_between(
+            output = database.data_selection_between(
                 start_price=input_int('Введите минимальную цену:\t'),
                 end_price=input_int('Введите максимальную цену:\t')
             )
             print_table(headers_2, output)
         elif other_var == 3:
-            output = Other.data_selection_nested_query(input_int('Введите ID гостя:\t'))
+            output = database.data_selection_nested_query(input_int('Введите ID гостя:\t'))
             print_table(headers_3, output)
         elif other_var == 4:
-            output = Other.data_selection_join(input_int('Введите ID гостя:\t'))
+            output = database.data_selection_join(input_int('Введите ID гостя:\t'))
             print_table(headers_4, output)
         elif other_var == 5:
             return
