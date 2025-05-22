@@ -1,17 +1,14 @@
 class AutoRegister(type):
-    def __init__(cls, name, bases, attrs):
-        super().__init__(name, bases, attrs)
+    def __new__(cls, name, bases, attrs):
+        obj = super().__new__(cls, name, bases, attrs)
         if not hasattr(cls, 'registry'):
             cls.registry = []
-        else:
-            cls.registry.append(cls)
+        cls.registry.append(obj)
+        return obj
 
 
 class BaseModel(metaclass=AutoRegister):
-    registry = []
-
-    def __init__(self):
-        pass
+    pass
 
 
 class User(BaseModel):
