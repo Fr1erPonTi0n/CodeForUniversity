@@ -68,7 +68,6 @@ class CustomerTwo(Customer):
 
 
 if __name__ == "__main__":
-
     store = Store()
 
     customer_a = CustomerOne("Денис")
