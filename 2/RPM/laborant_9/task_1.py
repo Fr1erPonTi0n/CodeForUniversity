@@ -16,7 +16,6 @@ class MainWin(QMainWindow):
 
         self.text = QLabel('0')
         self.text.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # он должен быть по центру
 
         self.button = QPushButton("Нажми на меня!")
         self.button.clicked.connect(self.the_button_was_clicked)
@@ -44,4 +43,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
