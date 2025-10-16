@@ -14,13 +14,13 @@ class MainWin(QMainWindow):
         self.filename_edit = QLineEdit(self)
 
         self.new_button = QPushButton("Создать новый", self)
-        self.new_button.clicked.connect(self.new_btn_func)
+        self.new_button.clicked.connect(self.new_file)
 
         self.save_button = QPushButton("Сохранить файл", self)
-        self.save_button.clicked.connect(self.save_btn_func)
+        self.save_button.clicked.connect(self.save_file)
 
         self.open_button = QPushButton("Открыть файл", self)
-        self.open_button.clicked.connect(self.open_btn_func)
+        self.open_button.clicked.connect(self.open_file)
 
         self.text_edit = QPlainTextEdit(self)
 
@@ -50,19 +50,19 @@ class MainWin(QMainWindow):
         widget.setLayout(main_layout)
         self.setCentralWidget(widget)
 
-    def new_btn_func(self):
+    def new_file(self):
         self.filename_edit.setText("")
         self.text_edit.setPlainText("")
         self.update_stats("")
 
-    def save_btn_func(self):
+    def save_file(self):
         if self.filename_edit.text() != "":
             with open(self.filename_edit.text(), "w", encoding="utf-8") as file:
                 plain_text = self.text_edit.toPlainText()
                 file.write(plain_text)
                 self.update_stats(plain_text)
 
-    def open_btn_func(self):
+    def open_file(self):
         self.text_edit.clear()
         try:
             with open(self.filename_edit.text(), "r", encoding="utf-8") as file:
