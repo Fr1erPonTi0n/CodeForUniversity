@@ -104,8 +104,12 @@ class MainWin(QMainWindow):
         self.most_common_word_label.setText(f"Самое частое слово: {most_common_word}")
 
 
-if __name__ == '__main__':
+def main():
     app = QApplication(sys.argv)
     window = MainWin()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
