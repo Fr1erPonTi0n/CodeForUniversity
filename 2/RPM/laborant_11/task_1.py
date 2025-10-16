@@ -1,7 +1,7 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QDialog, QFileDialog, \
-    QSlider, QHBoxLayout
-from PyQt6.QtCore import QPoint
+
+from PyQt6.QtWidgets import \
+    (QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QDialog, QFileDialog, QSlider, QHBoxLayout)
 from PyQt6.QtGui import QImage, QPixmap, QColor, QTransform
 
 
@@ -44,7 +44,8 @@ class FirstWin(QDialog):
     def __init__(self):
         super().__init__()
 
-        self.image = None
+        self.original_image = None
+        self.curr_image = None
         self.opacity = 100
 
         self.initUI()
@@ -60,7 +61,7 @@ class FirstWin(QDialog):
         self.slider.valueChanged.connect(self.set_opacity)
 
         self.image_label = QLabel()
-        self.image_label.setPixmap(QPixmap.fromImage(self.curr_image))
+        self.image_label.setPixmap(QPixmap())
 
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.slider)
@@ -76,20 +77,28 @@ class FirstWin(QDialog):
         file_path, _ = QFileDialog.getOpenFileName(self, "Открыть изображение", "",
                                                    "Изображения (*.png *.jpg *.jpeg *.bmp)")
         if file_path:
-            self.image = QImage(file_path)
-            if self.image.isNull():
+            self.original_image = QImage(file_path)
+            if self.original_image.isNull():
                 return
+            self.opacity = 100
+            self.slider.setValue(100)
+            self.curr_image = self.original_image.copy()
             self.update_display()
 
-
     def update_display(self):
-        if self.image is None:
-            return
-
-        pass
+        self.image_label.setPixmap(QPixmap.fromImage(self.curr_image))
 
     def set_opacity(self, value):
+        if self.original_image is None and self.curr_image is None:
+            return
         self.opacity = value
+        self.curr_image = self.original_image.copy()
+        alpha = int((value / 100.0) * 255)
+        for i in range(self.curr_image.width()):
+            for j in range(self.curr_image.height()):
+                color = self.curr_image.pixelColor(i, j)
+                color.setAlpha(alpha)
+                self.curr_image.setPixelColor(i, j, color)
         self.update_display()
 
 
@@ -123,7 +132,7 @@ class SecondWin(QDialog):
         self.button_ALL.clicked.connect(self.edit_color)
 
         self.image_label = QLabel()
-        self.image_label.setPixmap(QPixmap.fromImage(self.curr_image))
+        self.image_label.setPixmap(QPixmap())
 
         self.button_counterclockwise = QPushButton('Против часовой стрелки')
         self.button_counterclockwise.clicked.connect(self.edit_rotate)
@@ -146,6 +155,7 @@ class SecondWin(QDialog):
         part_layout_2.addWidget(self.button_clockwise)
 
         layout = QVBoxLayout()
+        layout.addWidget(self.button_open_file)
         layout.addLayout(part_layout_1)
         layout.addLayout(part_layout_2)
 
@@ -155,35 +165,44 @@ class SecondWin(QDialog):
         file_path, _ = QFileDialog.getOpenFileName(self, "Открыть изображение", "",
                                                    "Изображения (*.png *.jpg *.jpeg *.bmp)")
         if file_path:
-            self.curr_image = QImage(file_path)
             self.original_image = QImage(file_path)
-            self.image_label.setPixmap(QPixmap.fromImage(self.curr_image))
+            self.curr_image = self.original_image.copy()
+            self.degree = 0
+            self.update_image()
+
+    def update_image(self):
+        self.image_label.setPixmap(QPixmap.fromImage(self.curr_image))
 
     def edit_color(self):
+        if self.original_image is None and self.curr_image is None:
+            return
+        self.curr_image = self.original_image.copy()
+        sender_text = self.sender().text()
         for i in range(self.curr_image.width()):
             for j in range(self.curr_image.height()):
                 r, g, b, _ = self.curr_image.pixelColor(i, j).getRgb()
-                if self.sender().text() == 'R':
+                if sender_text == 'R':
                     self.curr_image.setPixelColor(i, j, QColor(r, 0, 0))
-                if self.sender().text() == 'G':
+                elif sender_text == 'G':
                     self.curr_image.setPixelColor(i, j, QColor(0, g, 0))
-                if self.sender().text() == 'B':
+                elif sender_text == 'B':
                     self.curr_image.setPixelColor(i, j, QColor(0, 0, b))
-                if self.sender().text() == 'ALL':
+                elif sender_text == 'ALL':
                     self.curr_image.setPixelColor(i, j, QColor(r, g, b))
-
         self.curr_image = self.curr_image.transformed(QTransform().rotate(self.degree))
-        self.image.setPixmap(QPixmap.fromImage(self.curr_image))
+        self.update_image()
 
     def edit_rotate(self):
-        if self.sender().text() == 'Против часовой стрелки':
-            degree = -90
-        if self.sender().text() == 'По часовой стрелке':
-            degree = 90
-
-        self.degree += degree
+        if self.original_image is None and self.curr_image is None:
+            return
+        sender_text = self.sender().text()
+        if sender_text == 'Против часовой стрелки':
+            self.degree -= 90
+        elif sender_text == 'По часовой стрелки':
+            self.degree += 90
+        self.curr_image = self.original_image.copy()
         self.curr_image = self.curr_image.transformed(QTransform().rotate(self.degree))
-        self.image.setPixmap(QPixmap.fromImage(self.curr_image))
+        self.update_image()
 
 
 def main():
@@ -195,3 +214,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
