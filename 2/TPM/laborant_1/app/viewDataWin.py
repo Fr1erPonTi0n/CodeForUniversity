@@ -96,9 +96,13 @@ class ViewDataWin(QWidget):
                 self.load_data()
 
     def edit_orders(self):
-        self.win_a = AddDataWin([self.table.item(self.table.selectedItems()[0].row(), col).text() for col in range(self.table.columnCount())])
-        self.win_a.destroyed.connect(self.load_data)
-        self.win_a.show()
+        if self.table.selectedItems(): # Добавлена проверка выбранного клиента
+            self.win_a = AddDataWin([self.table.item(self.table.selectedItems()[0].row(), col).text() for col in range(self.table.columnCount())])
+            self.win_a.order_saved.connect(self.load_data) # Добавлен сигнал успешного изменения 
+            self.win_a.destroyed.connect(self.load_data)
+            self.win_a.show()
+        else: # Если клиент не выбран, то выдает предупреждение
+            QMessageBox.warning(self, "Предупреждение", "Выберите запись для редактирования")
 
     def go_back(self):
         self.close()

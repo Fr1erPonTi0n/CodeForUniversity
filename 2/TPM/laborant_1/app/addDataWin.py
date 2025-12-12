@@ -1,10 +1,13 @@
 from PyQt6.QtWidgets import QWidget, QPushButton, QVBoxLayout, QComboBox, QLineEdit, QTextEdit, QMessageBox, QLabel
 from PyQt6.QtGui import QIcon
 from database.scripts.db import Data
+from PyQt6.QtCore import pyqtSignal # Добавлена библиотека для отправки сигналов
 from pathlib import Path
 
 
 class AddDataWin(QWidget):
+    order_saved = pyqtSignal() # Сигнал успешного завершения изменения клиента
+
     def __init__(self, data = None):
         super().__init__()
         self.db = Data(str(Path(__file__).parent.parent / "database" / "service_center.db")) # из-за того, что путь к папке неверен (внутри апп нету датабайс, он выше), программа не считывала базу
@@ -98,6 +101,7 @@ class AddDataWin(QWidget):
             answer = self.db.add_order(type_of_work=type_of_work, description=description, acceptance_date=acceptance_date,
                                        customer=customer, executor=executor, status=status)
         QMessageBox.information(self, "Инфо", answer)
+        self.order_saved.emit() # Отправляем сигнал об успешном сохранении
         self.close()
 
     def go_back(self): # Добавление функции кнопки назад
