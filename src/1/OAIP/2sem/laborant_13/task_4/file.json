@@ -1,0 +1,90 @@
+{
+  "response": {
+    "GeoObjectCollection": {
+      "metaDataProperty": {
+        "GeocoderResponseMetaData": {
+          "request": "Дубай, бульвар Мухаммед Бин Рашид, дом 1",
+          "found": "1",
+          "results": "10"
+        }
+      },
+      "featureMember": [
+        {
+          "GeoObject": {
+            "metaDataProperty": {
+              "GeocoderMetaData": {
+                "kind": "house",
+                "text": "ОАЭ, Дубай, бульвар Мухаммед Бин Рашид, дом 1",
+                "precision": "exact",
+                "Address": {
+                  "country_code": "UAE",
+                  "postal_code": "00000",
+                  "formatted": "Дубай, бульвар Мухаммед Бин Рашид, 1",
+                  "Components": [
+                    {
+                      "kind": "country",
+                      "name": "ОАЭ"
+                    },
+                    {
+                      "kind": "province",
+                      "name": "эмират Дубай"
+                    },
+                    {
+                      "kind": "province",
+                      "name": "Дубай"
+                    },
+                    {
+                      "kind": "locality",
+                      "name": "Дубай"
+                    },
+                    {
+                      "kind": "street",
+                      "name": "бульвар Мухаммед Бин Рашид"
+                    },
+                    {
+                      "kind": "house",
+                      "name": "1"
+                    }
+                  ]
+                },
+                "AddressDetails": {
+                  "Country": {
+                    "AddressLine": "Дубай, бульвар Мухаммед Бин Рашид, 1",
+                    "CountryNameCode": "UAE",
+                    "CountryName": "Дубай",
+                    "AdministrativeArea": {
+                      "AdministrativeAreaName": "Дубай",
+                      "Locality": {
+                        "LocalityName": "Дубай",
+                        "Thoroughfare": {
+                          "ThoroughfareName": "бульвар Мухаммед Бин Рашид",
+                          "Premise": {
+                            "PremiseNumber": "1",
+                            "PostalCode": {
+                              "PostalCodeNumber": "00000"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "ОАЭ, Дубай",
+            "name": "бульвар Мухаммед Бин Рашид, 1",
+            "boundedBy": {
+              "Envelope": {
+                "lowerCorner": "25.196563 55.274149",
+                "upperCorner": "25.197612 55.274183"
+              }
+            },
+            "Point": {
+              "pos": "25.197300 55.274243"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

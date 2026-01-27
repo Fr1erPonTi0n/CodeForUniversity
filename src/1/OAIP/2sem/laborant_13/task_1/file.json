@@ -1,0 +1,26 @@
+{
+  "data1": {
+    "age": 20,
+    "phone": "+73539215818",
+    "name": "Anna",
+    "city": "Vienna"
+  },
+  "data2": {
+    "age": 20,
+    "phone": "+73539215818",
+    "name": "Venya",
+    "city": "Vienna"
+  },
+  "data3": {
+    "age": 20,
+    "phone": "+73539215818",
+    "name": "Steve",
+    "city": "Vienna"
+  },
+  "data4": {
+    "age": 20,
+    "phone": "+73539215818",
+    "name": "Roma",
+    "city": "Moscow"
+  }
+}
