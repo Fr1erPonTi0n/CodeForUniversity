@@ -1,18 +1,13 @@
-from .dependencies import Movie
+from .storage import storage
 
-MOVIES = [
-    Movie(
-        slug="Harry",
-        title="Harry Potter",
-        description="Some description",
-        year=2002,
-        duration=150,
-    ),
-    Movie(
-        slug="Ring",
-        title="Lord's of the ring",
-        description="Some description",
-        year=2000,
-        duration=200,
-    ),
-]
+def get_movies():
+    return storage.get_all()
+
+def get_movie_by_slug(slug: str):
+    return storage.get_by_slug(slug)
+
+def create_movie(movie_in):
+    return storage.create(movie_in)
+
+def delete_movie_by_slug(slug: str):
+    return storage.delete_by_slug(slug)
