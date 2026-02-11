@@ -2,17 +2,17 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Annotated
 
 from .dependencies import Movie, MovieCreate
-from .crud import get_movies, get_movie_by_slug, create_movie
+from .crud import storage
 
 router = APIRouter(prefix="/movies", tags=["movies"])
 
 @router.get("/", response_model=list[Movie])
 def get_list_movies():
-    return get_movies()
+    return storage.get_all()
 
 @router.post("/", response_model=Movie, status_code=status.HTTP_201_CREATED)
 def create_movie(movie_in: MovieCreate) -> Movie:
-    movie = create_movie(movie_in)
+    movie = storage.create(movie_in)
     if movie:
         return movie
     raise HTTPException(
@@ -21,7 +21,7 @@ def create_movie(movie_in: MovieCreate) -> Movie:
             )
 
 def prefetch_movie(slug: str) -> Movie:
-    movie = get_movie_by_slug(slug)
+    movie = storage.get_by_slug(slug)
     if movie:
         return movie
     raise HTTPException(
@@ -39,6 +39,5 @@ def get_movie_details_by_slug(
 def delete_movie(
     movie: Annotated[Movie, Depends(prefetch_movie)],
 ):
-    from .storage import storage
     storage.delete(movie)
     return None
