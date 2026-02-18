@@ -29,19 +29,16 @@ class BooksStorage(BaseModel):
         return self.delete_by_slug(slug=book.slug)
 
     def update(self, book: Book, book_in: BookUpdate) -> Book:
-        updated_book = book.model_copy(update=book_in.model_dump())
-        self.slug_to_book[updated_book.slug] = updated_book
-        if book.slug != updated_book.slug:
-            del self.slug_to_book[book.slug]
-        return updated_book
+        for field, value in book_in:
+            setattr(book, field, value)
+        self.slug_to_book[book.slug] = book
+        return book
 
     def partial_update(self, book: Book, book_in: BookPartialUpdate) -> Book:
-        update_data = {k: v for k, v in book_in.model_dump().items() if v is not None}
-        updated_book = book.model_copy(update=update_data)
-        self.slug_to_book[updated_book.slug] = updated_book
-        if book.slug != updated_book.slug:
-            del self.slug_to_book[book.slug]
-        return updated_book
+        for field, value in book_in.model_dump(exclude_unset=True).items():
+            setattr(book, field, value)
+        self.slug_to_book[book.slug] = book
+        return book
 
 
 storage = BooksStorage()
