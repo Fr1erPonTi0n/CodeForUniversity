@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 class MovieBase(BaseModel):
     title: str
-    slug: str
     description: str
     year: int
     duration: int
@@ -22,13 +21,13 @@ class Movie(MovieBase):
     '''
     Модель фильма
     '''
+    slug: str
 
 
 class MovieUpdate(MovieBase):
     '''
     Модель для полного обновления фильма
     '''
-    slug: Annotated[str, MinLen(3), MaxLen(30)]
 
 
 class MoviePartialUpdate(BaseModel):
@@ -36,7 +35,6 @@ class MoviePartialUpdate(BaseModel):
     Модель для частичного обновления фильма
     '''
     title: Optional[str] = None
-    slug: Optional[Annotated[str, MinLen(3), MaxLen(30)]] = None
     description: Optional[str] = None
     year: Optional[int] = None
     duration: Optional[int] = None
