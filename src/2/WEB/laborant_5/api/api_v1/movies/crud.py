@@ -29,20 +29,16 @@ class MoviesStorage(BaseModel):
         return self.delete_by_slug(slug=movie.slug)
 
     def update(self, movie: Movie, movie_in: MovieUpdate) -> Movie:
-        updated_movie = movie.model_copy(update=movie_in.model_dump())
-        self.slug_to_movie[updated_movie.slug] = updated_movie
-        if movie.slug != updated_movie.slug:
-            del self.slug_to_movie[movie.slug]
-        return updated_movie
+        for field, value in movie_in:
+            setattr(movie, field, value)
+        self.slug_to_book[movie.slug] = movie
+        return movie
 
     def partial_update(self, movie: Movie, movie_in: MoviePartialUpdate) -> Movie:
-        update_data = {k: v for k, v in movie_in.model_dump().items() if v is not None}
-        updated_movie = movie.model_copy(update=update_data)
-        self.slug_to_movie[updated_movie.slug] = updated_movie
-        if movie.slug != updated_movie.slug:
-            del self.slug_to_movie[movie.slug]
-        return updated_movie
-
+        for field, value in movie_in.model_dump(exclude_unset=True).items():
+            setattr(movie, field, value)
+        self.slug_to_book[movie.slug] = movie
+        return movie
 
 storage = MoviesStorage()
 
