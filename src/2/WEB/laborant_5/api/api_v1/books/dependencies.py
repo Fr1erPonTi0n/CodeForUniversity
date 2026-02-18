@@ -1,40 +1,17 @@
-from typing import Annotated, Optional
-from annotated_types import MinLen, MaxLen
-from pydantic import BaseModel
+from fastapi import HTTPException, status, Depends
+from typing import Annotated
+from .crud import storage
+from schemas import Book
 
 
-class BookBase(BaseModel):
-    title: str
-    slug: str
-    description: str
-    pages: int
+def prefetch_book(slug: str) -> Book:
+    book = storage.get_by_slug(slug)
+    if book:
+        return book
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Книга с slug '{slug}' не найдена",
+    )
 
 
-class BookCreate(BookBase):
-    '''
-    Модель для создания книги
-    '''
-    slug: Annotated[str, MinLen(3), MaxLen(30)]
-
-
-class Book(BookBase):
-    '''
-    Модель книги
-    '''
-
-
-class BookUpdate(BookBase):
-    '''
-    Модель для полного обновления книги
-    '''
-    slug: Annotated[str, MinLen(3), MaxLen(30)]
-
-
-class BookPartialUpdate(BaseModel):
-    '''
-    Модель для частичного обновления книги
-    '''
-    title: Optional[str] = None
-    slug: Optional[Annotated[str, MinLen(3), MaxLen(30)]] = None
-    description: Optional[str] = None
-    pages: Optional[int] = None
+BookDep = Annotated[Book, Depends(prefetch_book)]

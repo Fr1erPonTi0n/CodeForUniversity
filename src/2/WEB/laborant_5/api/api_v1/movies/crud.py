@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from .dependencies import Movie, MovieCreate, MovieUpdate, MoviePartialUpdate
+from schemas import Movie, MovieCreate, MovieUpdate, MoviePartialUpdate
 
 
 class MoviesStorage(BaseModel):

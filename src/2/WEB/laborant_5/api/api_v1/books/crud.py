@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from .dependencies import Book, BookCreate, BookUpdate, BookPartialUpdate
+from schemas import Book, BookCreate, BookUpdate, BookPartialUpdate
 
 
 class BooksStorage(BaseModel):
