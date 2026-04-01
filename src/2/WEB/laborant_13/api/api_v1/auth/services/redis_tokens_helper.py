@@ -1,0 +1,57 @@
+from redis import Redis
+
+from .tokens_helper import AbstractTokensHelper
+from core import config
+
+
+class RedisTokensHelper(AbstractTokensHelper):
+
+    def __init__(
+        self,
+        port: int,
+        host: str,
+        db: int,
+        tokens_set_name: str,
+    ):
+        self.redis = Redis(
+            port=port,
+            host=host,
+            db=db,
+            decode_responses=True,
+        )
+        self.tokens_set = tokens_set_name
+
+    def token_exists(self, token: str) -> bool:
+        return bool(
+            self.redis.sismember(
+                self.tokens_set,
+                token,
+            )
+        )
+
+    def add_token(self, token: str):
+        self.redis.sadd(
+            self.tokens_set,
+            token,
+        )
+
+    def get_tokens(self) -> list[str]:
+        return list(
+            self.redis.smembers(
+                name=self.tokens_set,
+            )
+        )
+
+    def delete_token(
+        self,
+        token: str,
+    ) -> bool:
+        return bool(self.redis.srem(self.tokens_set, token))
+
+
+redis_tokens = RedisTokensHelper(
+    host=config.REDIS_HOST,
+    port=config.REDIS_PORT,
+    db=config.REDIS_DB_TOKENS,
+    tokens_set_name=config.REDIS_SET_NAME_TOKENS,
+)
