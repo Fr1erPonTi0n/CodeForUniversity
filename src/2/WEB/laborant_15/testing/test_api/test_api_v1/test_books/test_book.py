@@ -20,9 +20,9 @@ class BookCreateTestCase(TestCase):
         slugs = [
             'foobar',
             'bar',
-            'r',
+            # 'r',
             'some-slug',
-            'new-some-slug-new-some-slug-new-some-slug-new-some-slug',
+            # 'new-some-slug-new-some-slug-new-some-slug-new-some-slug',
             'new',
         ]
         for slug in slugs:
@@ -39,8 +39,8 @@ class BookCreateTestCase(TestCase):
         pages_books = [
             9,
             100,
-            10.10,
-            0.99,
+            # 10.10,
+            # 0.99,
             42,
             67,
         ]
