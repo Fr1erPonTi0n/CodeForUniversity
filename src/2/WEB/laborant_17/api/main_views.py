@@ -3,7 +3,8 @@ from fastapi import APIRouter
 router = APIRouter()
 
 @router.get('/')
-def read_root():
+def read_root(name: str = "World"):
     return {
-        'message': '/docs',
+        'message': f'Hello, {name}!',
+        'docs': '/docs',
     }
