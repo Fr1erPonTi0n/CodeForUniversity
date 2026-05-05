@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<h1>Hello, Book!</h1>
+<div>
+  <a href="/docs">Swagger docs</a>
+</div>
+<h3 class="mt-5">Features:</h3>
+<ul class="list-group">
+  {% for feature in features %}
+  <li class="list-group-item">{{ feature }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
+
+{% block footer %}
+<div>Ведётся активная разработка!</div>
+{{ super() }}
+{% endblock %}
