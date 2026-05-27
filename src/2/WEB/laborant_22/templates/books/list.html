@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+All Books
+{% endblock %}
+
+{% block main %}
+<div class="container mt-4">
+    <h1>Books list</h1>
+
+    {% if books %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <td scope="col">Slug</td>
+                    <td scope="col">Title</td>
+                    <td scope="col">Description</td>
+                    <td scope="col">Pages</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td><code>{{ book.slug }}</code></td>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.description }}</td>
+                    <td>{{ book.pages }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h3>No books<h3>
+    {% endif %}
+
+</div>
+{% endblock %}
+
