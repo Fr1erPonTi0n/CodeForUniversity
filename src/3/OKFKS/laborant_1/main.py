@@ -1,11 +1,11 @@
 from hashlib import sha256
 
-data_1 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-data_2 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+data = ["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"]
 
 
-def hashlib_sha_256(data: bytes) -> str:
-    return sha256(data).hexdigest()
+def hashlib_sha_256(line: bytes) -> str:
+    return sha256(line).hexdigest()
 
 
 def _right_rotate(val, amount):
@@ -13,7 +13,7 @@ def _right_rotate(val, amount):
     return ((val >> amount) | (val << (32 - amount))) & 0xFFFFFFFF
 
 
-def my_sha_256(data: bytes) -> str:
+def my_sha_256(line: bytes) -> str:
     # Инициализация констант (первые 32 бита дробных частей квадратных корней первых 64 простых чисел)
     k = [
         0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5, 0x3956C25B, 0x59F111F1, 0x923F82A4, 0xAB1C5ED5,
@@ -33,15 +33,15 @@ def my_sha_256(data: bytes) -> str:
     ]
 
     # 1. Дополнительное сообщение (Padding)
-    bit_length = len(data) * 8
-    data += b'\x80'
-    while (len(data) * 8 + 64) % 512 != 0:
-        data += b'\x00'
-    data += bit_length.to_bytes(8, 'big')
+    bit_length = len(line) * 8
+    line += b'\x80'
+    while (len(line) * 8 + 64) % 512 != 0:
+        line += b'\x00'
+    line += bit_length.to_bytes(8, 'big')
 
     # 2. Обработка сообщения блоками по 512 бит (64 бита)
-    for i in range(0, len(data), 64):
-        chunk = data[i:i + 64]
+    for i in range(0, len(line), 64):
+        chunk = line[i:i + 64]
         w = list(chunk[j:j + 4] for j in range(0, 64, 4))
         w = [int.from_bytes(word, 'big') for word in w]
 
@@ -88,13 +88,15 @@ if __name__ == "__main__":
         b"Proizvol sydbui",
     ]
 
-    for message in test_messages:
+    for i, message in enumerate(test_messages):
         hashlib_result = hashlib_sha_256(message)
         my_result = my_sha_256(message)
 
         print(f"Сообщение: {message.decode('utf-8')!r}")
         print(f"SHA-256 hashlib: {hashlib_result}")
         print(f"SHA-256 моя реализация: {my_result}")
+        if i < len(data):
+            print(f"Совпадает ли hashlib с data: {i < len(data) and hashlib_result == data[i]}")
+            print(f"Совпадает ли моя реализация с data: {i < len(data) and my_result == data[i]}")
         print(f"Совпадают: {hashlib_result == my_result}")
         print()
-      
